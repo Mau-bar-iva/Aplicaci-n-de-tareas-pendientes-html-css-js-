@@ -35,18 +35,11 @@ function showNoteDescription(note){
 
 //funcion para editar notas
 function editNote(note){
-    
-
-    //const contenedor = note.querySelector(".main__notes-container-note")
-    //const inputTitle = document.createElement("input")
     const noteCheck = note.querySelector(".main__note-checkbox")
     const noteTitle = note.querySelector(".main__note-text")
     const notePriority = note.querySelector(".note-description-priority")
     const noteDate = note.querySelector(".note-description-date")
     const noteDescription = note.querySelector(".note-description")
-    
-    //inputTitle.placeholder = noteTitle.value
-    //inputTitle.classList.add("main__note-text")
 
     const newNote = document.createElement("form")
     newNote.classList.add("main__note")
@@ -95,9 +88,8 @@ function editNote(note){
     const descripcion = newNote.querySelector(".main__note-description")
     descripcion.style.maxHeight = "none"
 
-
-
     //obtenemos las opciones del elemento select
+    
     const newNotePriorityLow = newNote.querySelector(".note-description-priority-low")
     const newNotePriorityMedium = newNote.querySelector(".note-description-priority-medium")
     const newNotePriorityHigh = newNote.querySelector(".note-description-priority-high")
@@ -111,6 +103,14 @@ function editNote(note){
         newNotePriorityHigh.setAttribute("selected", "selected")
     }
 
+    
+    const newCheck = newNote.querySelector(".note-edit-checkbox")
+    let estadoFinalCheckbox = noteCheck.checked
+
+    newCheck.addEventListener("change", ()=>{
+        estadoFinalCheckbox = newCheck.checked
+    })
+    
     const btnCancel = newNote.querySelector(".main__note__btnForm-cancel")
     btnCancel.addEventListener("click",()=>{
         containerNotas.replaceChild(note, newNote)
@@ -128,7 +128,8 @@ function editNote(note){
         noteDescription.innerHTML = newNote.querySelector(".note-edit-description").value
         notePriority.innerHTML = `Priority: ${newNote.querySelector(".note-description-priority").value}`
         noteDate.textContent = newNote.querySelector(".note-description-date").value
-        
+        noteCheck.checked = estadoFinalCheckbox;
+
         containerNotas.replaceChild(note,newNote)
         console.log("hecho")
     })
@@ -142,6 +143,7 @@ function deleteNote(note){
         for (let i = 0; i < notas.length; i++) {
             if(notas[i] === note){
                 containerNotas.removeChild(notas[i])
+                mensajeNoTareas()
             }
         }
     }else{
@@ -268,8 +270,12 @@ const crearElementoNota = (nota) => {
                     
                     <!-- Bloque que contiene los botones Editar y Eliminar nota -->
                     <div class="main__note-actions">
-                        <button class="main__note__actions__button main__note__actions__button--edit">Edit</button>
-                        <button class="main__note__actions__button main__note__actions__button--delete">Delete</button>
+                        <div class="actions__container-btns">
+                            <button class="main__note__actions__button main__note__actions__button--edit">Edit</button>
+                        </div>
+                        <div class="actions__container-btns">
+                            <button class="main__note__actions__button main__note__actions__button--delete">Delete</button>
+                        </div>
                     </div>
                 </div>
 
@@ -296,25 +302,41 @@ const crearElementoNota = (nota) => {
         const ellipsisCont = htmlNote.querySelector(".main__note-actions")
         //Obtenemos el botón de opciones (ícono de tres puntos)
         const btnEllipsis = htmlNote.querySelector(".main__note-button");
+        const contBtnEdit = htmlNote.querySelectorAll(".actions__container-btns")
+        const btnNoteEdit = htmlNote.querySelector(".main__note__actions__button--edit")
+        const btnNoteDelete = htmlNote.querySelector(".main__note__actions__button--delete")
 
         //Alternamos la visualización de menú de acciones al hacer click en el botón de opciones
         btnEllipsis.addEventListener("click",()=>{
             ellipsisCont.classList.toggle("menu")
-            if(ellipsisCont.classList.contains("menu")){
+            const isVisible = ellipsisCont.classList.contains("menu")
+            if(isVisible){
                 requestAnimationFrame(()=>{
-                    ellipsisCont.style.right = "-70px"
-                    ellipsisCont.style.opacity = "1"}
+                    contBtnEdit[0].style.maxWidth = "100%"
+                    contBtnEdit[0].style.paddingLeft = "30px"
+                    contBtnEdit[0].style.transform = "scaleX(1)";
+                    contBtnEdit[0].style.opacity = "1";
+
+                    contBtnEdit[1].style.maxWidth = "100%"
+                    contBtnEdit[1].style.paddingLeft = "30px"
+                    contBtnEdit[1].style.transform = "scaleX(1)";
+                    contBtnEdit[1].style.opacity = "1";
+                    }
                 )
             }else{
-                ellipsisCont.style.right = "0px"
-                ellipsisCont.style.opacity = "0"
+                contBtnEdit[1].style.maxWidth = "0"
+                contBtnEdit[1].style.paddingLeft = "0"
+                contBtnEdit[1].style.transform = "scaleX(0)";
+                contBtnEdit[1].style.opacity = "0";
+
+                contBtnEdit[0].style.maxWidth = "0"
+                contBtnEdit[0].style.paddingLeft = "0"
+                contBtnEdit[0].style.transform = "scaleX(0)";
+                contBtnEdit[0].style.opacity = "0";
+                
             }
             
         })
-
-        const btnNoteEdit = htmlNote.querySelector(".main__note__actions__button--edit")
-        const btnNoteDelete = htmlNote.querySelector(".main__note__actions__button--delete")
-        
 
         btnNoteEdit.addEventListener("click",()=>{editNote(note)})
         btnNoteDelete.addEventListener("click", ()=>{deleteNote(note)})
@@ -348,6 +370,7 @@ const manejarSubmitFormulario = (formulario) => {
         if (containerNotas.contains(msj)){
             containerNotas.removeChild(msj)
             containerNotas.style.display = "flex";
+            containerNotas.style.justifyContent = "stretch"
         }
 
         containerNotas.prepend(htmlNote);
@@ -378,7 +401,6 @@ const formNuevaNota = () => {
             containerNotas.removeChild(formulario.form)
             formExist = false
         })
-        containerNotas.style.justifyContent = "stretch"
         containerNotas.appendChild(formulario.form)
         
     
@@ -491,14 +513,19 @@ function ordenarAlfabeticamente(arrayHtml){
         return textoA.localeCompare(textoB)
     })
 
-    while (containerNotas.firstChild){
-        containerNotas.removeChild(containerNotas.firstChild);
-    }
+    if(arrayHtml.length > 1){
+        while (containerNotas.firstChild){
+            containerNotas.removeChild(containerNotas.firstChild);
+        }
 
-    elementosOrdenados.forEach(elemento => {
-        const nodo = elemento.closest(".main__note");
-        containerNotas.appendChild(nodo)
-    })
+        elementosOrdenados.forEach(elemento => {
+            const nodo = elemento.closest(".main__note");
+            containerNotas.appendChild(nodo)
+        })
+    }else{
+        return
+    }
+    
 }   
 btnOrderAlfabetic.addEventListener("click",()=>{ordenarAlfabeticamente(notas)})
 
@@ -533,16 +560,19 @@ function ordenarPrioridad(arrayHtml){
             }
         }
 
-        while (containerNotas.firstChild){
-            containerNotas.removeChild(containerNotas.firstChild);
+        if(arrayHtml.length > 1){
+            while (containerNotas.firstChild){
+                containerNotas.removeChild(containerNotas.firstChild);
+            }
+
+            elementosOrdenados.reverse()
+
+            elementosOrdenados.forEach(elemento => {
+                const nodo = elemento.closest(".main__note");
+                containerNotas.appendChild(nodo)
+            })
         }
         
-        elementosOrdenados.reverse()
-
-        elementosOrdenados.forEach(elemento => {
-            const nodo = elemento.closest(".main__note");
-            containerNotas.appendChild(nodo)
-        })
     }
 }   
 btnOrderPriority.addEventListener("click", ()=>{ordenarPrioridad(notas)})
@@ -569,19 +599,22 @@ function ordenarFechaLimite(arrayHtml){
         }
     })
 
-    while (containerNotas.firstChild){
-        containerNotas.removeChild(containerNotas.firstChild);
+    if(arrayHtml.length > 1){
+        while (containerNotas.firstChild){
+            containerNotas.removeChild(containerNotas.firstChild);
+        }
+
+        elementosOrdenados.sort((a, b) => {
+            const fechaA = new Date(a.querySelector(".note-description-date").textContent);
+            const fechaB = new Date(b.querySelector(".note-description-date").textContent);
+            return fechaA - fechaB; // Ordena de más próxima a más lejana
+        });
+
+        elementosOrdenados.forEach(nodo => {
+            containerNotas.appendChild(nodo)
+        })
     }
     
-    elementosOrdenados.sort((a, b) => {
-        const fechaA = new Date(a.querySelector(".note-description-date").textContent);
-        const fechaB = new Date(b.querySelector(".note-description-date").textContent);
-        return fechaA - fechaB; // Ordena de más próxima a más lejana
-    });
-
-    elementosOrdenados.forEach(nodo => {
-        containerNotas.appendChild(nodo)
-    })
 }   
 btnOrderDueDate.addEventListener("click", ()=>{ordenarFechaLimite(notas)})
 //*  --- Pantalla Principal ---
