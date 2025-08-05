@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Metadatos básicos -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Titulo del sitio -->
+    <title>To-Do App</title>
+
+    <!-- Link al archivo de estilos css -->
+     <link rel="stylesheet" href="./css/styles.css">
+
+     <!-- Link al archivo de estilos normalize -->
+      <link rel="stylesheet" href="./css/normalize.css">
+
+    <!-- Carga el kit de iconos desde Font Awesome -->
+     <script src="https://kit.fontawesome.com/74facd0758.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Encabezado principal del sitio -->
+        <header class="header">
+
+            <!-- Titulo del encabezado -->
+            <h1 class="header__title"><i class="fa-solid fa-list-check header__icon"></i>To-Do App</h1>
+        
+        </header>
+
+        <!-- Contenido principal del sitio -->
+        <main class="main">
+
+            <!-- Contenedor que agrupa la barra de búsqueda y botones -->
+            <div class="main__nav-container">
+
+                <!-- Botón para agregar nueva nota -->
+                <button class="main__nav-button" title="Add task"><i class="fa-solid fa-plus main__nav-button-icon"></i></button>
+                
+                <!-- Campo de búsqueda de notas -->
+                <input type="text" placeholder="Hacer función de ordenar Search note..." id="main__nav-input" class="main__nav-input">
+
+                <!-- Contenedor de la función para odernar -->
+                 <div class="main__nav-container-order">
+                    <button class="main__nav-button-order">Order by<i class="fa-solid fa-angle-down"></i></button>
+                    <div class="main__nav__order__menu">
+                        <button class="main__nav__order__alfabetic">A-Z</button>
+                        <button class="main__nav__order__priority">Priority</button>
+                        <button class="main__nav__order__dueDate">Due date</button>
+                    </div>
+                 </div>
+            </div>
+            
+
+            <!-- Contenedor que agrupa las notas -->
+            <div class="main__notes-container">
+                
+            </div>
+
+        </main>
+
+        <!-- Pie de página del sitio -->
+        <footer class="footer"></footer>
+    </div>
+
+    <!-- Link al archivo de scripts JS -->
+    <script src="./js/script.js"></script>
+</body>
+
+</html>

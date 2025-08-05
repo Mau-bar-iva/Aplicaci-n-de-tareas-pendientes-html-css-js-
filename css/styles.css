@@ -1,0 +1,502 @@
+body {
+    background-color: #f1f1e9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 40px 0;
+    font-family: sans-serif;
+}
+button{
+    user-select: none;
+    cursor: pointer;
+}
+.container{
+    width: 70vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/*  Estilos del Encabezado principal     */
+.header{
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #3374ff;
+    border-top-left-radius: 20px;
+    border-top-Right-radius: 20px;
+}
+
+.header__title{
+    color: #fff;
+}
+
+.header__icon{
+    color: rgb(129, 233, 126);
+    font-size: 28px;
+    margin-right: 10px;
+}
+
+
+/*  Estilos del Contenido principal     */
+.main{
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fff;
+    border-bottom-left-radius: 20px;
+    border-bottom-Right-radius: 20px;
+}
+/*Main navegador*/
+.main__nav-container{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.main__nav-button{
+    padding: 3px 5px;
+    background-color: rgb(51, 116, 255);
+    border: none;
+    border-radius: 5px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+.main__nav-button-icon{
+    font-size: 30px;
+    color: #81e97e;
+}
+.main__nav-input{
+    width: 50vw;
+    padding: 5px;
+    font-size: 20px;
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid #767676;
+}
+.main__nav-container-order{
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 5;
+}
+.main__nav-container-order:focus{
+    border: none;
+    outline: none;
+}
+.main__nav-button-order{
+    padding: 9px;
+    border: none;
+    background-color: inherit;
+    color: #fff;
+    background-color: rgb(51, 116, 255);
+    border-radius: 5px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    z-index: 2;
+}
+
+.fa-angle-down-animation{
+    transform: rotate(180deg);
+    color: #81e97e;
+}
+
+.fa-angle-down{
+    transition-duration: .5s;
+}
+
+.main__nav__order__menu{
+    display: none;
+    width: 114px;
+    min-width: 100px;
+    height: 70px;
+    position: absolute;
+    background: #3374ff;
+    flex-direction: column;
+    align-items: flex-end;
+    top: 25px;
+    right: 0px;
+    padding-top: 15px;
+    z-index: 1;
+    border-bottom-left-radius: 5px;
+    border-bottom-Right-radius: 5px;
+}
+.main__nav__order__menu button{
+    width: 100%;
+    padding: 2px 0;
+    border: none;
+    background: inherit;
+    color: #ffff;
+}
+.main__nav__order__menu button:hover{
+    background: #1251da;
+}
+
+.orderSelected{
+    background: #81e97e;
+}
+/*Main Notas*/
+.main__notes-container{
+    min-height: 65vh;
+    height: auto;
+    position: relative;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.msjNoTasks{
+    color: #767676;
+}
+
+.main__note{
+    min-height: 55px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.main__notes-container-note{
+    background-color: #edeff7;
+    min-height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    border-radius: 20px;
+    padding: 0 15px;
+    box-shadow: 2px 4px 2px 0px #8c97c0;
+    border: none;
+    transition: .4s;
+    z-index: 1;
+}
+
+.main__notes-container-note:hover{
+    transform: translateY(-5px);
+}
+
+.is-active{
+    transform: translateY(-5px);
+}
+.main__note-checkbox{
+    transform: scale(2.1);
+    margin: 0 20px 0 13px;
+}
+.main__note-checkbox:checked{
+    color: rgb(51, 116, 255);
+}
+.main__note-text{
+    width: 0px;
+    flex: 1;
+    word-wrap: break-word;
+    cursor: pointer;
+    padding: 10px 0;
+}
+
+.main__note-description {
+    overflow: hidden;
+    transition: max-height 1.5s, padding .4s, opacity .3s;
+    padding: 0 50px;
+    background: #5c8cf5;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+    opacity: 0;
+    color: #fff;
+    margin-top: -20px;
+    max-height: 0px;
+}
+
+.main__note-description--visible{
+    padding: 50px 50px 20px;
+    opacity: 1;
+}
+
+.main__note-description p{
+    color: #fff;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    margin-top: 10px;
+}
+
+
+
+.main__note-description-datePriority-container{
+    display: flex;
+    gap: 50px;
+}
+
+.main__note__btnFormContainer{
+    display: flex;
+    flex-direction: row-reverse;
+    gap: 15px;
+}
+
+.main__note__btnFormContainer button{
+    padding: 5px 15px;
+    border: none;
+    border-radius: 10px;
+}
+
+.main__note__btnFormContainer button:hover{
+    filter: brightness(.9);
+}
+
+.main__note-button{
+    font-size: 30px;
+    border: none;
+    margin: 10px;
+    background-color: inherit;
+}
+.main__note-button-ellipsis{
+    user-select: none;
+    color: #3374ff;
+}
+.main__note-actions{
+    display: none;
+    right: 0px;
+    position: absolute;
+    background-color: #edeff7;
+    border-radius: 2px;
+    overflow: hidden;
+    z-index: 2;
+    opacity: 0;
+    transition: right 1s, opacity 2s;
+}
+.main__note__actions__button{
+    user-select: none;
+    white-space: nowrap/**********************************/;
+    /*width: 100%;
+    padding: 2px 5px;*/
+    background-color: transparent;
+    border: none;
+    width: fit-content;
+    max-width: 200px;
+}
+.main__note__actions__button:hover{
+    background-color: #3374ff;
+    color: #fff;
+}
+.menu{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+}
+
+/* ---- Formulario de Nueva Nota ----*/
+.form-nueva-nota{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 100%;
+    height: 55vh;
+    position:absolute;
+    padding: 10px 40px;
+    background-color: #3374ff;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    top: 0;
+    z-index: 2;
+}
+.form-nueva-nota label{
+    color: #fff;
+}
+.form-titulo{
+    background-color: #ffffff;
+    border:none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    user-select: none;
+}
+.form-titulo:focus{
+    border: none;
+    outline: none;
+}
+.form-descripcion{
+    height: 35vh;
+    background-color: #ffffff;
+    border:none;
+    padding: 10px 10px 10px 20px;
+    border-radius: 5px;
+    padding: 10px 20px;
+    resize: none;
+}
+.form-descripcion:focus{
+    border: none;
+    outline: none;
+}
+.form-footer-container{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.form-fecha-prioridad-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    padding-left: 20px;
+}
+.form-fecha-container{
+    display: inline;
+}
+.form-fecha{
+    border: none;
+    padding: 5px 20px;
+    border-radius: 10px;
+}
+.form-fecha:focus{
+    border: none;
+    outline: none;
+}
+.form-select-container{
+    display: inline;
+}
+.form-select{
+    border: none;
+    padding: 5px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.form-select:focus{
+    outline: none;
+    border: none;
+}
+.form-btns-container{
+    display: flex;
+    gap: 15px;
+}
+.form-btns-container button{
+    padding: 10px 20px;
+    user-select: none;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+}
+.form-btns-container button:hover,
+.form-select:hover{
+    filter: brightness(.9);
+}
+
+/* ---- Formulario Editar Nota ---- */
+.note-edit-checkbox{
+    transform: scale(2.1);
+    margin: 0 13px 0 7px;
+}
+.note-edit-title{
+    flex: 1;
+    border: none;
+    padding: 5px 0px 5px 10px;
+    border-radius: 10px;
+}
+.note-edit-button{
+    font-size: 30px;
+    border: none;
+    margin: 10px;
+    background-color: inherit;
+}
+.note-edit-description{
+    min-height: 100px;
+    width: 100%;
+    resize: none;
+    margin: 10px 0;
+}
+
+
+
+/* Estilos generales para pantallas menores a 768px (tablets y móviles) */
+@media (max-width: 768px) {
+  .container {
+    width: 95vw;
+    height: 95vh;
+    border-radius: 15px;
+  }
+
+  .main__nav-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .main__nav-input {
+    width: 100%;
+    font-size: 18px;
+  }
+
+  .main__nav-container-order {
+    justify-content: flex-end;
+  }
+
+  .main__note-container-note {
+    flex-direction: row;
+    align-items: center;
+    height: auto;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .main__note-checkbox {
+    transform: scale(1.5);
+    margin: 0;
+  }
+
+  .main__note-text {
+    width: 100%;
+    padding: 5px 0;
+  }
+
+  .main__note-button {
+    align-self: flex-end;
+    margin: 0;
+  }
+
+  .main__note-description {
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  .form-nueva-nota {
+    height: auto;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .form-descripcion {
+    height: 25vh;
+    font-size: 16px;
+  }
+
+  .form-footer-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .form-fecha-prioridad-container {
+    flex-direction: column;
+    gap: 15px;
+    padding-left: 0;
+  }
+
+  .form-btns-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-btns-container button,
+  .form-select,
+  .form-fecha {
+    width: 100%;
+    font-size: 16px;
+  }
+}
