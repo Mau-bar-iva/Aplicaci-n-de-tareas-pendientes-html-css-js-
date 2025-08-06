@@ -268,7 +268,7 @@ const crearElementoNota = (nota) => {
     
                     <!-- Boton que despliega las opciones Eliminar y Editar nota -->
                     <div>
-                    <button type="button" class="note-edit-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
+                        <button type="button" class="main__note-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
                     </div> 
                     
                     <!-- Bloque que contiene los botones Editar y Eliminar nota -->
