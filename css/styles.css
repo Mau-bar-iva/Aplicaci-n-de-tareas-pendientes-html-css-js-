@@ -153,7 +153,12 @@ button{
 }
 
 .msjNoTasks{
-    color: #767676;
+  font-size: clamp(1rem, 2.5vw, 1.5rem); /* Se ajusta entre 1rem y 1.5rem según el viewport */
+  color: #767676;
+  text-align: center;
+  max-width: 90%;
+  margin: 0 auto;
+  transition: font-size 0.3s ease;
 }
 
 .main__note{
@@ -452,7 +457,7 @@ button{
     justify-content: flex-end;
   }
 
-  .main__note-container-note {
+  .main__notes-container-note {
     flex-direction: row;
     align-items: center;
     height: auto;
