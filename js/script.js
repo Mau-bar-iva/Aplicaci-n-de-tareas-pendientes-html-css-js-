@@ -267,7 +267,9 @@ const crearElementoNota = (nota) => {
                     <span class="main__note-text">${capitalizeFirstLetter(nota.titulo)}</span>
     
                     <!-- Boton que despliega las opciones Eliminar y Editar nota -->
-                    <button class="main__note-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
+                    <div>
+                    <button type="button" class="note-edit-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
+                    </div> 
                     
                     <!-- Bloque que contiene los botones Editar y Eliminar nota -->
                     <div class="main__note-actions">
