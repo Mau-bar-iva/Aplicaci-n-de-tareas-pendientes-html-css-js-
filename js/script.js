@@ -53,8 +53,9 @@ function editNote(note){
                 <input value="${noteTitle.textContent}" class="note-edit-title">
 
                 <!-- Boton que despliega las opciones Eliminar y Editar nota -->
-                <button type="button" class="note-edit-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
-                
+                <div>
+                    <button type="button" class="note-edit-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
+                </div>                
                 <!-- Bloque que contiene los botones Editar y Eliminar nota -->
                 <div class="main__note-actions">
                     <button class="main__note__actions__button main__note__actions__button--edit">Edit</button>
