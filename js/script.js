@@ -6,8 +6,12 @@
 const btnAgregarNota = document.querySelector(".main__nav-button")
 const containerNotas = document.querySelector(".main__notes-container")
 const notas = containerNotas.children
-//guardamos las notas originales para restaurar el orden o notas si se modifica la variable notas
 
+//función para obtener datos del localStorage
+const obtenerDatoDelStorage = (name) => {
+    let dato = JSON.parse(localStorage.getItem(`${name}`)) || [];
+    return dato
+}
 
 //función para tranformar primera letra en mayúscula
 const capitalizeFirstLetter = (str) =>{
@@ -124,15 +128,28 @@ function editNote(note){
     })
 
     //al enviarse el formulario el contenido de la nota original se actualiza por los del formulario de editar y se reemplaza por la nueva nota
-    newNote.addEventListener("submit",()=>{
-        noteTitle.innerHTML = newNote.querySelector(".note-edit-title").value
-        noteDescription.innerHTML = newNote.querySelector(".note-edit-description").value
-        notePriority.innerHTML = `Priority: ${newNote.querySelector(".note-description-priority").value}`
-        noteDate.textContent = newNote.querySelector(".note-description-date").value
-        noteCheck.checked = estadoFinalCheckbox;
+    newNote.addEventListener("submit",(e)=>{
+        e.preventDefault();
+        let notas = obtenerDatoDelStorage('notas');
+        notas = notas.map(nota => {
+            if (capitalizeFirstLetter(nota.titulo) === noteTitle.textContent) {
+                noteTitle.innerHTML = newNote.querySelector(".note-edit-title").value
+                noteDescription.innerHTML = newNote.querySelector(".note-edit-description").value
+                notePriority.innerHTML = `Priority: ${newNote.querySelector(".note-description-priority").value}`
+                noteDate.textContent = newNote.querySelector(".note-description-date").value
+                noteCheck.checked = estadoFinalCheckbox;
 
-        containerNotas.replaceChild(note,newNote)
-        console.log("hecho")
+                return {
+                    titulo: noteTitle.textContent,
+                    descripcion: noteDescription.textContent,
+                    fecha: noteDate.textContent,
+                    prioridad: newNote.querySelector(".note-description-priority").value
+                };
+            }
+        })
+        localStorage.setItem('notas', JSON.stringify(notas));
+        
+        
     })
     containerNotas.replaceChild(newNote, note)
 }
@@ -141,6 +158,11 @@ function editNote(note){
 function deleteNote(note){
     const des = confirm("Are you sure you want to delete the note?")
     if(des){
+        let notasArr = JSON.parse(localStorage.getItem('notas')) || [];
+
+        notasArr = notasArr.filter(nota => capitalizeFirstLetter(nota.titulo) !== note.querySelector(".main__note-text").textContent);
+        localStorage.setItem('notas', JSON.stringify(notasArr));
+
         for (let i = 0; i < notas.length; i++) {
             if(notas[i] === note){
                 containerNotas.removeChild(notas[i])
@@ -254,7 +276,6 @@ const crearFormularioNota = () => {
 
 //Toma una nota como objeto ({titulo, descripcion, fecha, prioridad}) y devuelve un div con la nota renderizada.
 const crearElementoNota = (nota) => {
-
     const htmlNote = document.createElement("div")
         htmlNote.classList.add("main__note")
         htmlNote.innerHTML = `
@@ -347,6 +368,15 @@ const crearElementoNota = (nota) => {
         return htmlNote;
 }
 
+//Cargar las notas guardadas en el localStorage al iniciar la aplicación.
+const cargarNotas = () => {
+    let notas = JSON.parse(localStorage.getItem('notas')) || [];
+
+    notas.forEach(nota => {
+        const htmlNote = crearElementoNota(nota);
+        containerNotas.appendChild(htmlNote);
+    });
+}
 //Asocia el evento de submit al formulario, obtiene los datos, crea la nota y la agrega al contenedor.
 const manejarSubmitFormulario = (formulario) => {
 
@@ -359,14 +389,17 @@ const manejarSubmitFormulario = (formulario) => {
     form.addEventListener("submit",(e)=>{
         e.preventDefault();
 
-        const nota = {
+        const newNota = {
             titulo: inputTitulo.value, 
             descripcion: textArea.value, 
             fecha: inputFecha.value, 
             prioridad: selectPrioridad.value
         };
-        
-        const htmlNote = crearElementoNota(nota);
+
+        // Guardamos la nota en el localStorage
+        let notas = JSON.parse(localStorage.getItem('notas')) || [];
+        notas.push(newNota);
+        localStorage.setItem('notas', JSON.stringify(notas));
 
         //si existe el mensaje "No pending tasks" en pantalla los borramos
         let msj = document.querySelector(".msjNoTasks")
@@ -376,7 +409,9 @@ const manejarSubmitFormulario = (formulario) => {
             containerNotas.style.justifyContent = "stretch"
         }
 
-        containerNotas.prepend(htmlNote);
+        const htmlNote = crearElementoNota(newNota);
+        containerNotas.appendChild(htmlNote);
+
         containerNotas.removeChild(form);
         formExist = false
     });
@@ -620,11 +655,13 @@ function ordenarFechaLimite(arrayHtml){
     
 }   
 btnOrderDueDate.addEventListener("click", ()=>{ordenarFechaLimite(notas)})
+
+
 //*  --- Pantalla Principal ---
-
-
 //si no hay tareas agregadas mostramos un mensaje (agregamos un elemento h1)
 function mensajeNoTareas(){
+    let notas = obtenerDatoDelStorage('notas')
+
     if (notas.length < 1){
         const msjNoTasks = document.createElement("H1")
         msjNoTasks.innerHTML = "No pending tasks";
@@ -636,3 +673,6 @@ function mensajeNoTareas(){
     }
 }
 mensajeNoTareas()
+
+//Cargamos las notas guardadas en el localStorage al iniciar la aplicación.
+document.addEventListener("DOMContentLoaded", cargarNotas)
