@@ -154,6 +154,28 @@ function editNote(note){
     containerNotas.replaceChild(newNote, note)
 }
 
+//funcion checklist --active
+let noteIndexBefore = 0
+function checked(note){
+    
+
+    const checkBox = note.querySelector(".main__note-checkbox")
+    
+    if(checkBox.checked){
+        for(let i = 0; i < notas.length; i++){
+        if (notas[i] === note) {
+            noteIndexBefore = i
+        }
+    }
+        containerNotas.removeChild(note)
+        containerNotas.appendChild(note)
+    }else{
+        alert("hola")
+        containerNotas.removeChild(note)
+        containerNotas.insertBefore(note, notas[noteIndexBefore])
+    }
+}
+
 //funcion para eliminar nota
 function deleteNote(note){
     const des = confirm("Are you sure you want to delete the note?")
@@ -315,7 +337,12 @@ const crearElementoNota = (nota) => {
 
         // Mostrar descripción de la nota
         const note = htmlNote
-        const texto = htmlNote.querySelector(".main__note-text")
+
+        //  CheckBox
+        const checkBox = note.querySelector(".main__note-checkbox")
+        checkBox.addEventListener('change',()=>{checked(note)})
+        
+        const texto = note.querySelector(".main__note-text")
 
         //texto.addEventListener("click",()=>{showNoteDescription(htmlNote)})
         texto.addEventListener("click", () => {showNoteDescription(note)})
@@ -323,12 +350,13 @@ const crearElementoNota = (nota) => {
         //  funciones de opciones de editado y eliminación de nota
 
         //Obtenemos el contenedor del menú de opciones (Editar / Eliminar)
-        const ellipsisCont = htmlNote.querySelector(".main__note-actions")
+        const ellipsisCont = note.querySelector(".main__note-actions")
+       
         //Obtenemos el botón de opciones (ícono de tres puntos)
-        const btnEllipsis = htmlNote.querySelector(".main__note-button");
-        const contBtnEdit = htmlNote.querySelectorAll(".actions__container-btns")
-        const btnNoteEdit = htmlNote.querySelector(".main__note__actions__button--edit")
-        const btnNoteDelete = htmlNote.querySelector(".main__note__actions__button--delete")
+        const btnEllipsis = note.querySelector(".main__note-button");
+        const contBtnEdit = note.querySelectorAll(".actions__container-btns")
+        const btnNoteEdit = note.querySelector(".main__note__actions__button--edit")
+        const btnNoteDelete = note.querySelector(".main__note__actions__button--delete")
 
         //Alternamos la visualización de menú de acciones al hacer click en el botón de opciones
         btnEllipsis.addEventListener("click",()=>{
@@ -365,7 +393,7 @@ const crearElementoNota = (nota) => {
         btnNoteEdit.addEventListener("click",()=>{editNote(note)})
         btnNoteDelete.addEventListener("click", ()=>{deleteNote(note)})
 
-        return htmlNote;
+        return note;
 }
 
 //Cargar las notas guardadas en el localStorage al iniciar la aplicación.
@@ -374,7 +402,7 @@ const cargarNotas = () => {
 
     notas.forEach(nota => {
         const htmlNote = crearElementoNota(nota);
-        containerNotas.appendChild(htmlNote);
+        containerNotas.prepend(htmlNote);
     });
 }
 //Asocia el evento de submit al formulario, obtiene los datos, crea la nota y la agrega al contenedor.
