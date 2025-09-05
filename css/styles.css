@@ -445,7 +445,6 @@ button{
 
     .container {
         width: 100vw;
-        height: 95vh;
         border-radius: 15px;
     }
     .header{
@@ -495,6 +494,14 @@ button{
         font-size: 17px;
     }
 
+    .main__note-description--visible{
+       
+    }
+
+    .main__note-actions {
+        right: 30px;
+    }
+
     .form-nueva-nota {
         height: auto;
         position: absolute;
@@ -509,6 +516,11 @@ button{
         font-size: 16px;
     }
 
+    .main__note-description-datePriority-container {
+        flex-direction: column;
+        gap: 20px;
+    }
+
     .form-footer-container {
         flex-direction: column;
         gap: 20px;
@@ -516,8 +528,26 @@ button{
 
     .form-fecha-prioridad-container {
         flex-direction: column;
+        align-items: flex-start;
         gap: 15px;
         padding-left: 0;
+    }
+
+    .form-fecha-container, .form-select-container{
+        width: 300px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        gap: 38px;
+    }
+
+    .form-select-container label, .form-fecha-container label{
+        width: 80px;
+    }
+
+    .form-select, .form-fecha{
+        font-size: 16px;
+        width: 150px;
     }
 
     .form-btns-container {
@@ -525,9 +555,7 @@ button{
         gap: 10px;
     }
 
-    .form-btns-container button,
-    .form-select,
-    .form-fecha {
+    .form-btns-container button {
         width: 100%;
         font-size: 16px;
     }

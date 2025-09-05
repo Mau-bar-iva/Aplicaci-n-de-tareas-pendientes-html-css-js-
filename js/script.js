@@ -69,16 +69,20 @@ function editNote(note){
 
             <div class="main__note-description main__note-description--visible">
                 <div class = "main__note-description-datePriority-container">
-                    <span>Priority: </span>
+                    <div>
+                        <span>Priority: </span>
 
-                    <select class="note-description-priority">
-                        <option class="note-description-priority-low">low</option>
-                        <option class="note-description-priority-medium">medium</option>
-                        <option class="note-description-priority-high">high</option>
-                    </select>
-
-                    <span>Fecha: </span>
-                    <input type="date" class="note-description-date" value="${noteDate.textContent}">
+                        <select class="note-description-priority">
+                            <option class="note-description-priority-low">low</option>
+                            <option class="note-description-priority-medium">medium</option>
+                            <option class="note-description-priority-high">high</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <span>Fecha: </span>
+                        <input type="date" class="note-description-date" value="${noteDate.textContent}">
+                    </div>
                 </div>
                 <textarea class="note-edit-description">${noteDescription.textContent}</textarea>
 
@@ -89,7 +93,8 @@ function editNote(note){
             </div>
             
     `
-    
+    const dateInput = newNote.querySelector(".note-description-date")
+    dateInput.min = new Date().toISOString().split("T")[0] //establecemos la fecha mínima como la fecha actual
     const descripcion = newNote.querySelector(".main__note-description")
     descripcion.style.maxHeight = "none"
 
@@ -148,8 +153,6 @@ function editNote(note){
             }
         })
         localStorage.setItem('notas', JSON.stringify(notas));
-        
-        
     })
     containerNotas.replaceChild(newNote, note)
 }
@@ -170,7 +173,6 @@ function checked(note){
         containerNotas.removeChild(note)
         containerNotas.appendChild(note)
     }else{
-        alert("hola")
         containerNotas.removeChild(note)
         containerNotas.insertBefore(note, notas[noteIndexBefore])
     }
@@ -219,7 +221,7 @@ const crearFormularioNota = () => {
     
     //Campo: Fecha limite
     const labelFecha = document.createElement("label")
-    labelFecha.textContent = "Select due date: ";
+    labelFecha.textContent = "Due date: ";
 
     const inputFecha = document.createElement("input")
     inputFecha.classList.add("form-fecha")
@@ -569,6 +571,7 @@ btnOrder.addEventListener("click", ()=>{
 })
 
 //Ordenar A-Z
+let contador = 0
 function ordenarAlfabeticamente(arrayHtml){
     const arrayElementos = Array.from(arrayHtml)
 
@@ -579,7 +582,7 @@ function ordenarAlfabeticamente(arrayHtml){
         return textoA.localeCompare(textoB)
     })
 
-    if(arrayHtml.length > 1){
+    if(arrayHtml.length > 1 && contador === 0){
         while (containerNotas.firstChild){
             containerNotas.removeChild(containerNotas.firstChild);
         }
@@ -588,6 +591,14 @@ function ordenarAlfabeticamente(arrayHtml){
             const nodo = elemento.closest(".main__note");
             containerNotas.appendChild(nodo)
         })
+        contador = 1
+    }else if(contador === 1){
+        while (containerNotas.firstChild){
+            containerNotas.removeChild(containerNotas.firstChild);
+        }
+
+        cargarNotas()
+        contador = 0
     }else{
         return
     }
@@ -626,7 +637,7 @@ function ordenarPrioridad(arrayHtml){
             }
         }
 
-        if(arrayHtml.length > 1){
+        if(arrayHtml.length > 1 && contador === 0){
             while (containerNotas.firstChild){
                 containerNotas.removeChild(containerNotas.firstChild);
             }
@@ -637,6 +648,13 @@ function ordenarPrioridad(arrayHtml){
                 const nodo = elemento.closest(".main__note");
                 containerNotas.appendChild(nodo)
             })
+        }else if(contador === 1){
+            while (containerNotas.firstChild){
+                containerNotas.removeChild(containerNotas.firstChild);
+            }
+
+            cargarNotas()
+            contador = 0
         }
         
     }
@@ -665,7 +683,7 @@ function ordenarFechaLimite(arrayHtml){
         }
     })
 
-    if(arrayHtml.length > 1){
+    if(arrayHtml.length > 1 && contador === 0){
         while (containerNotas.firstChild){
             containerNotas.removeChild(containerNotas.firstChild);
         }
@@ -679,6 +697,16 @@ function ordenarFechaLimite(arrayHtml){
         elementosOrdenados.forEach(nodo => {
             containerNotas.appendChild(nodo)
         })
+        contador = 1
+    }else if(contador === 1){
+        while (containerNotas.firstChild){
+            containerNotas.removeChild(containerNotas.firstChild);
+        }
+
+        cargarNotas()
+        contador = 0
+    }else{
+
     }
     
 }   
