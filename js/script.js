@@ -1,12 +1,20 @@
-
 const btnAgregarNota = document.querySelector(".main__nav-button")  //Obtenemos el botón de agregar nota ("+")
 const containerNotas = document.querySelector(".main__notes-container") //Obtenemos el contenedor de las notas
 const notas = containerNotas.children //Obtenemos las notas que hay en el contenedor
 
 //  función para obtener datos del localStorage, lo usamos para obtener las notas guardadas
 const obtenerDatoDelStorage = (name) => {
-    let dato = JSON.parse(localStorage.getItem(`${name}`)) || [];
-    return dato
+    try {
+        let dato = JSON.parse(localStorage.getItem(`${name}`));
+        if (!Array.isArray(dato)) {
+            console.warn(`El dato recuperado para '${name}' no es un arreglo. Se inicializará como un arreglo vacío.`);
+            return [];
+        }
+        return dato;
+    } catch (error) {
+        console.error(`Error al recuperar datos del localStorage para '${name}':`, error);
+        return [];
+    }
 }
 
 //  Cargar las notas guardadas en el localStorage al iniciar la aplicación.
@@ -22,63 +30,61 @@ const cargarNotas = () => {
 //  Recibe una nota como { titulo, descripcion, fecha, prioridad } y retorna un <div class="main__note">.
 const crearElementoNota = (nota) => {
     const htmlNote = document.createElement("div")
-        htmlNote.classList.add("main__note")
-        htmlNote.innerHTML = `
-                <!-- Nota info -->
-                <div class="main__notes-container-note">
-                        <!-- Entrada checkbox para marcar tarea hecha  -->
-                    <input type="checkbox" id="note-1-check" class="main__note-checkbox">
-                        
-                    <!-- Titulo de la tarea a hacer -->
-                    <span class="main__note-text">${capitalizeFirstLetter(nota.titulo)}</span>
+    htmlNote.classList.add("main__note")
+    console.log(nota)
+    htmlNote.innerHTML = `
+            <!-- Nota info -->
+            <div class="main__notes-container-note">
+                    <!-- Entrada checkbox para marcar tarea hecha  -->
+                <input type="checkbox" id="note-1-check" class="main__note-checkbox">
+                    
+                <!-- Titulo de la tarea a hacer -->
+                <span class="main__note-text">${capitalizeFirstLetter(nota.titulo)}</span>
+
+                <!-- Boton que despliega las opciones Eliminar y Editar nota -->
+                <div>
+                    <button type="button" class="main__note-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
+                </div> 
+                
+                <!-- Bloque que contiene los botones Editar y Eliminar nota -->
+                <div class="main__note-actions">
+                    <div class="actions__container-btns">
+                        <button class="main__note__actions__button main__note__actions__button--edit">Edit</button>
+                    </div>
+                    <div class="actions__container-btns">
+                        <button class="main__note__actions__button main__note__actions__button--delete">Delete</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Nota descripción -->
+            <div class="main__note-description">
+                <div class = "main__note-description-datePriority-container">
+                    <span class="note-description-priority">Priority: ${nota.prioridad}</span>
+                    <span class="note-description-date">${nota.fecha ? nota.fecha : ""}</span>
+                </div>
+                <p class="note-description">${capitalizeFirstLetter(nota.descripcion)}</p>
+                
+            </div>
+    `
+    //  funciones de checkbox
+    const checkBox = htmlNote.querySelector(".main__note-checkbox")
+    checkBox.addEventListener('change',()=>{checked(note)})
     
-                    <!-- Boton que despliega las opciones Eliminar y Editar nota -->
-                    <div>
-                        <button type="button" class="main__note-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
-                    </div> 
-                    
-                    <!-- Bloque que contiene los botones Editar y Eliminar nota -->
-                    <div class="main__note-actions">
-                        <div class="actions__container-btns">
-                            <button class="main__note__actions__button main__note__actions__button--edit">Edit</button>
-                        </div>
-                        <div class="actions__container-btns">
-                            <button class="main__note__actions__button main__note__actions__button--delete">Delete</button>
-                        </div>
-                    </div>
-                </div>
+    //  función para mostrar descripción de nota al hacer click en el título
+    const texto = htmlNote.querySelector(".main__note-text")
+    texto.addEventListener("click", () => {showNoteDescription(htmlNote)})
 
-                <!-- Nota descripción -->
-                <div class="main__note-description">
-                    <div class = "main__note-description-datePriority-container">
-                        <span class="note-description-priority">Priority: ${nota.prioridad}</span>
-                        <span class="note-description-date">${nota.fecha ? nota.fecha : ""}</span>
-                    </div>
-                    <p class="note-description">${capitalizeFirstLetter(nota.descripcion)}</p>
-                    
-                </div>
-        `
+    //  Obtenemos los elementos necesarios para las funciones de Editar, Eliminar y el menú de opciones
+    const ellipsisCont = htmlNote.querySelector(".main__note-actions")  //Obtenemos el contenedor del menú de opciones (Editar / Eliminar)
+    const btnEllipsis = htmlNote.querySelector(".main__note-button");   //Obtenemos el botón de opciones (ícono de tres puntos)
+    const btnNoteEdit = htmlNote.querySelector(".main__note__actions__button--edit")    //Obtenemos el botón de Editar nota
+    const btnNoteDelete = htmlNote.querySelector(".main__note__actions__button--delete")    //Obtenemos el botón de Eliminar nota
 
-        //  funciones de checkbox
-        const checkBox = htmlNote.querySelector(".main__note-checkbox")
-        checkBox.addEventListener('change',()=>{checked(note)})
-        
-        //  función para mostrar descripción de nota al hacer click en el título
-        const texto = htmlNote.querySelector(".main__note-text")
-        texto.addEventListener("click", () => {showNoteDescription(htmlNote)})
-
-        //  Obtenemos los elementos necesarios para las funciones de Editar, Eliminar y el menú de opciones
-        const ellipsisCont = htmlNote.querySelector(".main__note-actions")  //Obtenemos el contenedor del menú de opciones (Editar / Eliminar)
-        const btnEllipsis = htmlNote.querySelector(".main__note-button");   //Obtenemos el botón de opciones (ícono de tres puntos)
-        const btnNoteEdit = htmlNote.querySelector(".main__note__actions__button--edit")    //Obtenemos el botón de Editar nota
-        const btnNoteDelete = htmlNote.querySelector(".main__note__actions__button--delete")    //Obtenemos el botón de Eliminar nota
-
-        //  Asociamos los eventos a los botones
-        btnEllipsis.addEventListener("click",()=>{btnEllipsisEvent(ellipsisCont, btnNoteEdit, btnNoteDelete)})
-        btnNoteEdit.addEventListener("click",()=>{editNote(htmlNote)})
-        btnNoteDelete.addEventListener("click", ()=>{deleteNote(htmlNote)})
-
-        return htmlNote;
+    //  Asociamos los eventos a los botones
+    btnEllipsis.addEventListener("click",()=>{btnEllipsisEvent(ellipsisCont)})
+    btnNoteEdit.addEventListener("click",()=>{editNote(htmlNote)})
+    btnNoteDelete.addEventListener("click", ()=>{deleteNote(htmlNote)})
+    return htmlNote;
 }
 
 //  funcion checklist para mover nota al final o devolverla a su posición original según su estado
@@ -121,35 +127,39 @@ function showNoteDescription(note){
 }
 
 //  Alternamos la visualización del menú de acciones con el botón de opciones (tres puntos)
-function btnEllipsisEvent(ellipsisCont, btnNoteEdit, btnNoteDelete){
+function btnEllipsisEvent(ellipsisCont){
     ellipsisCont.classList.toggle("menu")
 
     const isVisible = ellipsisCont.classList.contains("menu")
 
+    const btnEditCont = ellipsisCont.querySelectorAll(".actions__container-btns")[0]
+    const btnDeleteCont = ellipsisCont.querySelectorAll(".actions__container-btns")[1]
+
     if(isVisible){
         requestAnimationFrame(()=>{
-            btnNoteEdit.style.maxWidth = "100%"
-            btnNoteEdit.style.paddingLeft = "30px"
-            btnNoteEdit.style.transform = "scaleX(1)";
-            btnNoteEdit.style.opacity = "1";
+            btnEditCont.style.maxWidth = "100%"
+            btnEditCont.style.paddingLeft = "30px"
+            btnEditCont.style.transform = "scaleX(1)";
+            btnEditCont.style.opacity = "1";
             
-            btnNoteDelete.style.maxWidth = "100%"
-            btnNoteDelete.style.paddingLeft = "30px"
-            btnNoteDelete.style.transform = "scaleX(1)";
-            btnNoteDelete.style.opacity = "1";
+            btnDeleteCont.style.maxWidth = "100%"
+            btnDeleteCont.style.paddingLeft = "30px"
+            btnDeleteCont.style.transform = "scaleX(1)";
+            btnDeleteCont.style.opacity = "1";
             }
         )
     }else{
-        btnNoteEdit.style.maxWidth = "0"
-        btnNoteEdit.style.paddingLeft = "0"
-        btnNoteEdit.style.transform = "scaleX(0)";
-        btnNoteEdit.style.opacity = "0";
-        
-        btnNoteDelete.style.maxWidth = "0"
-        btnNoteDelete.style.paddingLeft = "0"
-        btnNoteDelete.style.transform = "scaleX(0)";
-        btnNoteDelete.style.opacity = "0";
-        
+        requestAnimationFrame(()=>{
+            btnEditCont.style.maxWidth = "0"
+            btnEditCont.style.paddingLeft = "0"
+            btnEditCont.style.transform = "scaleX(0)";
+            btnEditCont.style.opacity = "0";
+            
+            btnDeleteCont.style.maxWidth = "0"
+            btnDeleteCont.style.paddingLeft = "0"
+            btnDeleteCont.style.transform = "scaleX(0)";
+            btnDeleteCont.style.opacity = "0";
+        })
     }
 }
 
@@ -424,6 +434,7 @@ const manejarSubmitFormulario = (formulario) => {
 
         //si existe el mensaje "No pending tasks" en pantalla los borramos
         let msj = document.querySelector(".msjNoTasks")
+
         if (containerNotas.contains(msj)){
             containerNotas.removeChild(msj)
             containerNotas.style.display = "flex";
@@ -433,11 +444,12 @@ const manejarSubmitFormulario = (formulario) => {
         const htmlNote = crearElementoNota(newNota);
         containerNotas.appendChild(htmlNote);
 
-        containerNotas.removeChild(form);
+        if (containerNotas.contains(form)) {
+            containerNotas.removeChild(form);
+        }
+
         formExist = false
     });
-
-
 }
 
 //  coordina las funciones crearFormularioNota() y manejarSubmitFormulario().

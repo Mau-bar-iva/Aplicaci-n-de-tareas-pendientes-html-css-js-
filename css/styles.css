@@ -314,7 +314,6 @@ button{
 .menu{
     display: flex;
     flex-direction: column;
-    
 }
 
 /* ---- Formulario de Nueva Nota ----*/
