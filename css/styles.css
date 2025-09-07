@@ -4,7 +4,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 40px 0;
+    padding: 20px 0;
     font-family: sans-serif;
 }
 button{
@@ -38,7 +38,6 @@ button{
     font-size: 28px;
     margin-right: 10px;
 }
-
 
 /*  Estilos del Contenido principal     */
 .main{
@@ -77,6 +76,9 @@ button{
     border-radius: 10px;
     border: 1px solid #767676;
 }
+.main__nav-input:focus{
+    outline: none;
+}
 .main__nav-container-order{
     min-width: 100px;
     display: flex;
@@ -114,7 +116,7 @@ button{
     display: none;
     width: 120px;
     min-width: 100px;
-    height: 70px;
+
     position: absolute;
     background: #3374ff;
     flex-direction: column;
@@ -123,18 +125,21 @@ button{
     right: 0px;
     padding-top: 15px;
     z-index: 1;
+}
+.main__nav__order__menu button:last-child{
     border-bottom-left-radius: 5px;
     border-bottom-Right-radius: 5px;
 }
 .main__nav__order__menu button{
     width: 100%;
-    padding: 2px 0;
+    padding: 4px 0;
     border: none;
     background: inherit;
     color: #ffff;
 }
 .main__nav__order__menu button:hover{
     background: #1251da;
+    
 }
 
 .orderSelected{
@@ -316,7 +321,6 @@ button{
 .form-nueva-nota{
     display: flex;
     flex-direction: column;
-    justify-content: space-around;
     width: 100%;
     min-height: 35vh;
     position:absolute;
@@ -326,6 +330,7 @@ button{
     border-bottom-right-radius: 20px;
     top: 0;
     z-index: 2;
+    gap: 20px;
 }
 .form-nueva-nota label{
     color: #fff;
@@ -364,9 +369,10 @@ button{
 
 .form-fecha-prioridad-container{
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 30px;
+    width: 100%;
     padding-left: 20px;
 }
 .form-fecha-container{
@@ -434,8 +440,12 @@ button{
     margin: 10px 0;
 }
 
-
-
+/* Estilos generales para pantallas entre 768px - 1024px*/
+@media (min-width: 769px) and (max-width: 1024px){
+    .form-descripcion{
+        margin: 10px 0;
+    }
+}
 /* Estilos generales para pantallas menores a 768px (tablets y móviles) */
 @media (max-width: 768px) {
     body{
@@ -451,7 +461,7 @@ button{
         border-radius: 0;
     }
     .main{
-        height: 100%;
+        height: 100vh;
     }
     .main__nav-container {
         align-items: stretch;
@@ -560,3 +570,24 @@ button{
         font-size: 16px;
     }
     }
+/* Estilos generales para pantallas menores a */
+@media (max-width: 400px) {
+    .main__nav-input {
+        font-size: 16px;
+    }
+    .main__note-description {
+        font-size: 15px;
+    }
+    .form-fecha-prioridad-container{
+        display: flex;
+        align-items: center;
+    }
+    .form-fecha-container, .form-select-container{
+        width: 200px;
+        gap: 20px;
+    }
+    .form-fecha{
+        width: 120px;
+        padding: 5px 5px;
+    }
+}
