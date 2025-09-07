@@ -6,7 +6,8 @@ const notas = containerNotas.children //Obtenemos las notas que hay en el conten
 const obtenerDatoDelStorage = (name) => {
     try {
         let dato = JSON.parse(localStorage.getItem(`${name}`));
-        if (!Array.isArray(dato)) {
+        
+        if (dato.includes(null)) {
             console.warn(`El dato recuperado para '${name}' no es un arreglo. Se inicializará como un arreglo vacío.`);
             return [];
         }
@@ -20,7 +21,7 @@ const obtenerDatoDelStorage = (name) => {
 //  Cargar las notas guardadas en el localStorage al iniciar la aplicación.
 const cargarNotas = () => {
     let notas = obtenerDatoDelStorage('notas');
-
+    console.log(notas)
     notas.forEach(nota => {
         const htmlNote = crearElementoNota(nota);
         containerNotas.prepend(htmlNote);
@@ -31,7 +32,7 @@ const cargarNotas = () => {
 const crearElementoNota = (nota) => {
     const htmlNote = document.createElement("div")
     htmlNote.classList.add("main__note")
-    console.log(nota)
+
     htmlNote.innerHTML = `
             <!-- Nota info -->
             <div class="main__notes-container-note">
@@ -180,7 +181,7 @@ function editNote(note){
                 <input type="checkbox" id="note-1-check" class="note-edit-checkbox">
                     
                 <!-- Titulo de la tarea a hacer -->
-                <input value="${noteTitle.textContent}" class="note-edit-title">
+                <input value="${noteTitle.textContent}" class="note-edit-title" type="text" required>
 
                 <!-- Boton que despliega las opciones Eliminar y Editar nota -->
                 <div>
@@ -219,18 +220,21 @@ function editNote(note){
             </div>
             
     `
+
+    //establecemos la fecha mínima como la fecha actual
     const dateInput = newNote.querySelector(".note-description-date")
-    dateInput.min = new Date().toISOString().split("T")[0] //establecemos la fecha mínima como la fecha actual
+    dateInput.min = new Date().toISOString().split("T")[0] 
+
+    // establecemos la descripción visible y con altura automática
     const descripcion = newNote.querySelector(".main__note-description")
     descripcion.style.maxHeight = "none"
 
-    //obtenemos las opciones del elemento select
-    
+    //  obtenemos las opciones del elemento select
     const newNotePriorityLow = newNote.querySelector(".note-description-priority-low")
     const newNotePriorityMedium = newNote.querySelector(".note-description-priority-medium")
     const newNotePriorityHigh = newNote.querySelector(".note-description-priority-high")
 
-    //comprueba el texto de prioridad de la nota original y marca la opcion correspondiente en el select del neuvo form
+    //  comprueba el texto de prioridad de la nota original y guarda la opcion correspondiente en el select del nuevo form
     if(notePriority.textContent.includes("low")){
         newNotePriorityLow.setAttribute("selected", "selected")
     }else if(notePriority.textContent.includes("medium")){
@@ -239,7 +243,7 @@ function editNote(note){
         newNotePriorityHigh.setAttribute("selected", "selected")
     }
 
-    
+    //  función para guardar los cambios del checkbox al editar
     const newCheck = newNote.querySelector(".note-edit-checkbox")
     let estadoFinalCheckbox = noteCheck.checked
 
@@ -247,6 +251,7 @@ function editNote(note){
         estadoFinalCheckbox = newCheck.checked
     })
     
+    //  función cancelar, al hacer click en cancelar se reemplaza la nota editada por la original y se oculta la descripción
     const btnCancel = newNote.querySelector(".main__note__btnForm-cancel")
     btnCancel.addEventListener("click",()=>{
         containerNotas.replaceChild(note, newNote)
@@ -262,20 +267,19 @@ function editNote(note){
     newNote.addEventListener("submit",(e)=>{
         e.preventDefault();
         let notas = obtenerDatoDelStorage('notas');
-        notas = notas.map(nota => {
-            if (capitalizeFirstLetter(nota.titulo) === noteTitle.textContent) {
+        notas.forEach(nota => {
+            if (nota.titulo.trim().toLowerCase() === noteTitle.textContent.trim().toLowerCase()) {
+
                 noteTitle.innerHTML = newNote.querySelector(".note-edit-title").value
                 noteDescription.innerHTML = newNote.querySelector(".note-edit-description").value
                 notePriority.innerHTML = `Priority: ${newNote.querySelector(".note-description-priority").value}`
                 noteDate.textContent = newNote.querySelector(".note-description-date").value
                 noteCheck.checked = estadoFinalCheckbox;
 
-                return {
-                    titulo: noteTitle.textContent,
-                    descripcion: noteDescription.textContent,
-                    fecha: noteDate.textContent,
-                    prioridad: newNote.querySelector(".note-description-priority").value
-                };
+                nota.titulo = noteTitle.textContent
+                nota.descripcion = noteDescription.textContent
+                nota.fecha = noteDate.textContent
+                nota.prioridad = newNote.querySelector(".note-description-priority").value
             }
         })
         localStorage.setItem('notas', JSON.stringify(notas));
@@ -305,6 +309,7 @@ function deleteNote(note){
 
 //  función para tranformar primera letra en mayúscula
 const capitalizeFirstLetter = (str) =>{
+    if(!str) return str;
     return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
