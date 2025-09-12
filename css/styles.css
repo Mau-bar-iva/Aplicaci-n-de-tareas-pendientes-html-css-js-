@@ -1,3 +1,9 @@
+html{
+    html {
+  scrollbar-gutter: stable;
+}
+}
+
 body {
     background-color: #f1f1e9;
     display: flex;
@@ -114,9 +120,7 @@ button{
 
 .main__nav__order__menu{
     display: none;
-    width: 120px;
-    min-width: 100px;
-
+    width: 100%;
     position: absolute;
     background: #3374ff;
     flex-direction: column;
@@ -125,16 +129,15 @@ button{
     right: 0px;
     padding-top: 15px;
     z-index: 1;
-}
-.main__nav__order__menu button:last-child{
     border-bottom-left-radius: 5px;
     border-bottom-Right-radius: 5px;
 }
+
 .main__nav__order__menu button{
     width: 100%;
     padding: 4px 0;
     border: none;
-    background: inherit;
+    background: none;
     color: #ffff;
 }
 .main__nav__order__menu button:hover{
@@ -174,6 +177,7 @@ button{
     position: relative;
     z-index: 2;
     overflow: visible;
+    margin: 5px 0;
 }
 
 .main__notes-container-note{
@@ -216,20 +220,20 @@ button{
 
 .main__note-description {
     overflow: hidden;
-    transition: max-height 1.5s, padding .4s, opacity .3s;
+    transition: max-height .5s, padding .4s, opacity .3s, margin-top .4s;
     padding: 0 50px;
     background: #5c8cf5;
     border-bottom-left-radius: 15px;
     border-bottom-right-radius: 15px;
     opacity: 0;
     color: #fff;
-    margin-top: -20px;
     max-height: 0px;
 }
 
 .main__note-description--visible{
     padding: 50px 50px 20px;
     opacity: 1;
+    margin-top: -20px;
 }
 
 .main__note-description p{
@@ -573,6 +577,13 @@ button{
 @media (max-width: 400px) {
     .main__nav-input {
         font-size: 16px;
+    }
+    .actions__container-btns{
+        background-color: #3374ff;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
     }
     .main__note-description {
         font-size: 15px;

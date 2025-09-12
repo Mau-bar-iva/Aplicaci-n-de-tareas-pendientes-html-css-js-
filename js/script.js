@@ -166,6 +166,7 @@ function btnEllipsisEvent(ellipsisCont){
 
 //  funcion para editar notas
 function editNote(note){
+    console.log("editando nota")
     const noteCheck = note.querySelector(".main__note-checkbox")
     const noteTitle = note.querySelector(".main__note-text")
     const notePriority = note.querySelector(".note-description-priority")
@@ -181,7 +182,7 @@ function editNote(note){
                 <input type="checkbox" id="note-1-check" class="note-edit-checkbox">
                     
                 <!-- Titulo de la tarea a hacer -->
-                <input value="${noteTitle.textContent}" class="note-edit-title" type="text" required>
+                <input value="${capitalizeFirstLetter(noteTitle.textContent)}" class="note-edit-title" type="text" required>
 
                 <!-- Boton que despliega las opciones Eliminar y Editar nota -->
                 <div>
@@ -220,7 +221,7 @@ function editNote(note){
             </div>
             
     `
-
+    containerNotas.replaceChild(newNote, note)
     //establecemos la fecha mínima como la fecha actual
     const dateInput = newNote.querySelector(".note-description-date")
     dateInput.min = new Date().toISOString().split("T")[0] 
@@ -270,7 +271,7 @@ function editNote(note){
         notas.forEach(nota => {
             if (nota.titulo.trim().toLowerCase() === noteTitle.textContent.trim().toLowerCase()) {
 
-                noteTitle.innerHTML = newNote.querySelector(".note-edit-title").value
+                noteTitle.innerHTML = capitalizeFirstLetter(newNote.querySelector(".note-edit-title").value)
                 noteDescription.innerHTML = newNote.querySelector(".note-edit-description").value
                 notePriority.innerHTML = `Priority: ${newNote.querySelector(".note-description-priority").value}`
                 noteDate.textContent = newNote.querySelector(".note-description-date").value
@@ -282,9 +283,12 @@ function editNote(note){
                 nota.prioridad = newNote.querySelector(".note-description-priority").value
             }
         })
+
         localStorage.setItem('notas', JSON.stringify(notas));
+        containerNotas.replaceChild(note, newNote)
     })
-    containerNotas.replaceChild(newNote, note)
+
+    
 }
 
 //  funcion para eliminar nota
@@ -447,7 +451,7 @@ const manejarSubmitFormulario = (formulario) => {
         }
 
         const htmlNote = crearElementoNota(newNota);
-        containerNotas.appendChild(htmlNote);
+        containerNotas.prepend(htmlNote);
 
         if (containerNotas.contains(form)) {
             containerNotas.removeChild(form);
