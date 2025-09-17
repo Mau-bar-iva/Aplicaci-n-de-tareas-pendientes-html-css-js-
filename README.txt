@@ -7,6 +7,5 @@ Tecnologías utilizadas
 -CSS
 -Javascript
 
-Para visualizar el sitio, abrir 'index.html' en tu navegador o visitar el este link hhttpp//weweqwieh.com
-
+Para visualizar el sitio, abrir 'index.html' en tu navegador o visitar el este link https://aplicaci-n-de-tareas-pendientes-html-git-a431b6-mzrids-projects.vercel.app
 Mauricio Barreras ivan 
