@@ -279,7 +279,7 @@ button{
 }
 .main__note-actions{
     width: 120px;
-    height: 70px;
+    height: 55px;
     display: none;
     position: absolute;
     border-radius: 2px;
