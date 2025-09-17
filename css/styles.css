@@ -170,7 +170,6 @@ button{
 }
 
 .main__note{
-    min-height: 55px;
     width: 95%;
     display: flex;
     flex-direction: column;
@@ -279,17 +278,17 @@ button{
     color: #3374ff;
 }
 .main__note-actions{
-    width: 90px;
-    height: 55px;
+    width: 120px;
+    height: 70px;
     display: none;
     position: absolute;
     border-radius: 2px;
-    right: -70px;
+    right: -100px;
     transition: right 1s;
 }
 .actions__container-btns{
     display: flex;
-    height: 25px;
+    height: 35px;
     max-width: 0;
     background: #edeff7;
     border-top-right-radius: 10px;
@@ -297,6 +296,7 @@ button{
     padding-left: 0px;
     transform: scaleX(0);
     opacity: 0;
+    overflow: hidden;
     transform-origin: left;
     transition: 
         max-width .7s ease, 
@@ -311,9 +311,18 @@ button{
 .main__note__actions__button{
     background-color: transparent;
     border: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 .main__note__actions__button:hover{
     color: #3374ff;
+}
+.main__note__actions__button:hover .action-edit-icon{
+    fill: #1251da;
+}
+.main__note__actions__button:hover .action-delete-icon{
+    fill: #1251da;
 }
 .menu{
     display: flex;
