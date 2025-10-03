@@ -153,7 +153,6 @@ button{
     min-height: 65vh;
     height: auto;
     position: relative;
-    user-select: none;
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -244,8 +243,6 @@ button{
     margin-top: 10px;
 }
 
-
-
 .main__note-description-datePriority-container{
     display: flex;
     gap: 50px;
@@ -258,7 +255,6 @@ button{
 }
 
 .main__note__btnFormContainer button{
-    padding: 5px 15px;
     border: none;
     border-radius: 10px;
 }
@@ -330,6 +326,40 @@ button{
     justify-content: center;
 }
 
+/* ---- Formulario Editar Nota */
+.note-description-priority{
+    border: none;
+    padding: 5px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.note-description-date{
+    border: none;
+    padding: 5px 20px;
+    border-radius: 10px;
+}
+.note-edit-description{
+    height: 15vh;
+    max-height: 35vh;
+    background-color: #ffffff;
+    border:none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    resize: none;
+}
+.note-edit-description:focus, 
+.note-description-date:focus, 
+.note-description-priority:focus{
+    outline: none;
+}
+
+.main__note__btnForm-cancel, .main__note__btnForm-edit{
+    padding: 10px 20px;
+    user-select: none;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+}
 /* ---- Formulario de Nueva Nota ----*/
 .form-nueva-nota{
     display: flex;
@@ -518,10 +548,6 @@ button{
         font-size: 17px;
     }
 
-    .main__note-description--visible{
-       
-    }
-
     .main__note-actions {
         right: 30px;
     }
@@ -586,11 +612,17 @@ button{
     }
 /* Estilos generales para pantallas menores a */
 @media (max-width: 400px) {
+    .main__notes-container-note:hover{
+        transform: translate(0);
+    }
     .main__nav-input {
         font-size: 16px;
     }
+    .main__note-actions{
+        width: auto;
+    }
     .actions__container-btns{
-        background-color: #3374ff;
+        background: #3374ff;
         border-top-left-radius: 5px;
         border-bottom-left-radius: 5px;
         border-bottom-right-radius: 0;

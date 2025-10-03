@@ -53,7 +53,7 @@ const crearElementoNota = (nota) => {
                         <button class="main__note__actions__button main__note__actions__button--edit"><svg class="action-edit-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000ff"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg><span>Edit</span></button>
                     </div>
                     <div class="actions__container-btns">
-                        <button class="main__note__actions__button main__note__actions__button--delete"><svg class="action-delete-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000ff"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>Delete</button>
+                        <button class="main__note__actions__button main__note__actions__button--delete"><svg class="action-delete-icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000ff"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg><span>Delete</span></button>
                     </div>
                 </div>
             </div>
@@ -78,13 +78,19 @@ const crearElementoNota = (nota) => {
     //  Obtenemos los elementos necesarios para las funciones de Editar, Eliminar y el menú de opciones
     const ellipsisCont = htmlNote.querySelector(".main__note-actions")  //Obtenemos el contenedor del menú de opciones (Editar / Eliminar)
     const btnEllipsis = htmlNote.querySelector(".main__note-button");   //Obtenemos el botón de opciones (ícono de tres puntos)
-    const btnNoteEdit = htmlNote.querySelector(".main__note__actions__button--edit")    //Obtenemos el botón de Editar nota
-    const btnNoteDelete = htmlNote.querySelector(".main__note__actions__button--delete")    //Obtenemos el botón de Eliminar nota
 
+    //  Añadimos los eventos correspondientes a los botones que esten dentro del contenedor de botones acciones
+    htmlNote.querySelectorAll(".actions__container-btns").forEach((e)=>{
+        const firstChild = e.firstElementChild;
+        if(firstChild.classList.contains("main__note__actions__button--edit")){
+            e.addEventListener("click",()=>{editNote(htmlNote)})
+        }else if(firstChild.classList.contains("main__note__actions__button--delete")){
+            e.addEventListener("click", ()=>{deleteNote(htmlNote)})
+        }
+    })
+    
     //  Asociamos los eventos a los botones
     btnEllipsis.addEventListener("click",()=>{btnEllipsisEvent(ellipsisCont)})
-    btnNoteEdit.addEventListener("click",()=>{editNote(htmlNote)})
-    btnNoteDelete.addEventListener("click", ()=>{deleteNote(htmlNote)})
     return htmlNote;
 }
 
@@ -136,6 +142,33 @@ function btnEllipsisEvent(ellipsisCont){
     const btnEditCont = ellipsisCont.querySelectorAll(".actions__container-btns")[0]
     const btnDeleteCont = ellipsisCont.querySelectorAll(".actions__container-btns")[1]
 
+    if(window.matchMedia("(max-width: 500px)").matches){
+        iconBtnEdit = btnEditCont.getElementsByTagName("svg")[0]
+        iconBtnDelete = btnDeleteCont.getElementsByTagName("svg")[0]
+        spanBtnEdit = btnEditCont.getElementsByTagName("span")[0]
+        spanBtnDelete = btnDeleteCont.getElementsByTagName("span")[0]
+        console.log(iconBtnEdit)
+        spanBtnEdit.style.display="none"
+        spanBtnDelete.style.display="none"
+        
+        if(isVisible){
+            requestAnimationFrame(()=>{
+                btnEditCont.style.maxWidth = "100%"
+                btnEditCont.style.transform = "scaleX(1)";
+                btnEditCont.style.padding = "0 15px"
+                btnEditCont.style.opacity = "1";
+                iconBtnEdit.setAttribute("fill", "#ffff")
+
+                btnDeleteCont.style.maxWidth = "100%"
+                btnDeleteCont.style.transform = "scaleX(1)";
+                btnDeleteCont.style.padding = "0 15px"
+                btnDeleteCont.style.opacity = "1";
+                iconBtnDelete.setAttribute("fill", "#ffff")
+                }
+            )
+        }
+        return
+    }
     if(isVisible){
         requestAnimationFrame(()=>{
             btnEditCont.style.maxWidth = "100%"
@@ -163,6 +196,7 @@ function btnEllipsisEvent(ellipsisCont){
         })
     }
 }
+
 
 //  funcion para editar notas
 function editNote(note){
