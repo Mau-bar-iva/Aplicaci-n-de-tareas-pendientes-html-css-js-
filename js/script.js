@@ -135,6 +135,21 @@ function showNoteDescription(note){
 
 //  Alternamos la visualización del menú de acciones con el botón de opciones (tres puntos)
 function btnEllipsisEvent(ellipsisCont){
+    document.querySelectorAll(".menu").forEach(menu => {
+        if (menu !== ellipsisCont) {
+            menu.classList.remove("menu");
+
+            const btns = menu.querySelectorAll(".actions__container-btns");
+
+            btns.forEach(btn => {
+                btn.style.maxWidth = "0";
+                btn.style.paddingLeft = "0";
+                btn.style.transform = "scaleX(0)";
+                btn.style.opacity = "0";
+            });
+        }
+    });
+
     ellipsisCont.classList.toggle("menu")
 
     const isVisible = ellipsisCont.classList.contains("menu")
@@ -320,9 +335,75 @@ function editNote(note){
 
         localStorage.setItem('notas', JSON.stringify(notas));
         containerNotas.replaceChild(note, newNote)
+        toastAlert("info", "Success: task edited successfully")
     })
 
     
+}
+
+function toastAlert(alert, text=null){
+    const container = document.querySelector(".container")
+
+    const toastContainer = document.createElement("div")
+    toastContainer.classList.add("toast__alert-container")
+
+    const alertInfo = document.createElement("i")
+    alertInfo.classList.add("fa-solid")
+    alertInfo.classList.add("fa-circle-info")
+    /*const alertWarning = document.createElement("i")
+    alertWarning.classList.add("fa-solid")
+    alertWarning.classList.add("fa-triangle-exclamation")
+    const alertError = document.createElement("i")
+    alertError.classList.add("fa-solid")
+    alertError.classList.add("fa-circle-xmark")*/
+    const alertSuccess = document.createElement("i")
+    alertSuccess.classList.add("fa-solid")
+    alertSuccess.classList.add("fa-check")
+
+    const alertText = document.createElement("h6")
+    alertText.classList.add("toast__alert-title")
+
+    const btnCloseAlert = document.createElement("button")
+    btnCloseAlert.classList.add("toast__btnClose")
+
+    const iconCloseAlert = document.createElement("i")
+    iconCloseAlert.classList.add("toast__btnClose-icon")
+    iconCloseAlert.classList.add("fa-solid")
+    iconCloseAlert.classList.add("fa-xmark")
+    
+    btnCloseAlert.appendChild(iconCloseAlert)
+
+    btnCloseAlert.addEventListener("click",()=>{
+        container.removeChild(document.querySelector(".toast__alert-container"))
+    })
+    
+    //función para que desaparezca en 5 segundos
+    setTimeout(()=>{
+        container.removeChild(document.querySelector(".toast__alert-container"))
+    }, 5000)
+
+    toastContainer.appendChild(btnCloseAlert)
+
+    const det = alert.toLowerCase()
+
+    if(det == "info"){
+        alertText.innerHTML= text;
+        toastContainer.prepend(alertText)
+        toastContainer.prepend(alertInfo)
+        toastContainer.classList.add("info")
+        container.appendChild(toastContainer)
+        
+    }
+    else if(det == "success"){
+        alertText.innerHTML= text;
+        toastContainer.prepend(alertText)
+        toastContainer.prepend(alertSuccess)
+        toastContainer.classList.add("success")
+        container.appendChild(toastContainer)
+        
+    }else{
+        console.log("hay error")
+    }
 }
 
 //  funcion para eliminar nota
@@ -340,6 +421,7 @@ function deleteNote(note){
                 mensajeNoTareas()
             }
         }
+        toastAlert("success", "Success: task successfully deleted")
     }else{
         console.log("se canceló la operación")
     }

@@ -22,10 +22,12 @@ button{
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
 }
 
 /*  Estilos del Encabezado principal     */
 .header{
+    width: 100%;
     height: 80px;
     display: flex;
     justify-content: center;
@@ -47,6 +49,7 @@ button{
 
 /*  Estilos del Contenido principal     */
 .main{
+    width: 100%;
     padding: 15px;
     display: flex;
     flex-direction: column;
@@ -239,6 +242,7 @@ button{
     white-space: normal;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    white-space: pre-line;
     line-height: 1.5;
     margin-top: 10px;
 }
@@ -484,6 +488,50 @@ button{
     margin: 10px 0;
 }
 
+/*  ---- Estilos para Toast Alert ---- */
+.toast__alert-container{
+    bottom: 50px;
+    position: fixed;
+    width: 30vw;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 10px 20px;
+    gap: 5px;
+    z-index: 2;
+}
+.info{
+    background-color: rgb(182, 185, 242);
+    border: 1px solid rgb(70, 76, 251);
+}
+.success{
+    background-color: rgb(200, 242, 182);
+    border: 1px solid rgb(109, 129, 101);
+}
+.fa-circle-info,
+.fa-check{
+    font-size: 30px;
+    color: #00000061;
+}
+.toast__btnClose{
+    background: none;
+    border: none;
+    color: #00000061;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.toast__btnClose-icon{
+    font-size: 25px;
+}
+.toast__alert-title{
+    font-size: 20px;
+    text-align: center;
+    flex: 1;
+    color: #00000061;
+}
+
 /* Estilos generales para pantallas entre 768px - 1024px*/
 @media (min-width: 769px) and (max-width: 1024px){
     .form-descripcion{
@@ -621,6 +669,9 @@ button{
     .main__note-actions{
         width: auto;
     }
+    .main__note-description--visible{
+        padding: 50px 10px 20px;
+    }
     .actions__container-btns{
         background: #3374ff;
         border-top-left-radius: 5px;
@@ -642,5 +693,9 @@ button{
     .form-fecha{
         width: 120px;
         padding: 5px 5px;
+    }
+
+    .toast__alert-container{
+        width: 90%;
     }
 }
