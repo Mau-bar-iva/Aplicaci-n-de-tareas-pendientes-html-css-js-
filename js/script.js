@@ -1,7 +1,8 @@
+const containerNav = document.querySelector(".main__nav-container")
 const btnAgregarNota = document.querySelector(".main__nav-button")  //Obtenemos el botón de agregar nota ("+")
 const containerNotas = document.querySelector(".main__notes-container") //Obtenemos el contenedor de las notas
 const notas = containerNotas.children //Obtenemos las notas que hay en el contenedor
-
+const containerCarpetas = document.querySelector(".folders-container")
 //  función para obtener datos del localStorage, lo usamos para obtener las notas guardadas
 const obtenerDatoDelStorage = (name) => {
     try {
@@ -27,6 +28,16 @@ const cargarNotas = () => {
         containerNotas.prepend(htmlNote);
     });
 }
+
+const cargarCarpetas = () => {
+    let carpetas = obtenerDatoDelStorage('carpetas');
+ 
+    carpetas.forEach(carpeta => {
+        const htmlNote = crearElementoCarpeta(carpeta);
+        containerCarpetas.append(htmlNote);
+    });
+}
+
 
 //  Recibe una nota como { titulo, descripcion, fecha, prioridad } y retorna un <div class="main__note">.
 const crearElementoNota = (nota) => {
@@ -92,6 +103,19 @@ const crearElementoNota = (nota) => {
     //  Asociamos los eventos a los botones
     btnEllipsis.addEventListener("click",()=>{btnEllipsisEvent(ellipsisCont)})
     return htmlNote;
+}
+const crearElementoCarpeta = (carpeta) =>{
+    const htmlFolder = document.createElement("div")
+    htmlFolder.classList.add("folder")
+
+    htmlFolder.innerHTML = `
+            <i class="fa-solid fa-folder"></i>
+            <span class="folder-title">${carpeta.titulo}</span>
+    `
+    
+    
+    
+    return htmlFolder;
 }
 
 //  funcion checklist para mover nota al final o devolverla a su posición original según su estado
@@ -412,7 +436,9 @@ function deleteNote(note){
     if(des){
         let notasArr = JSON.parse(localStorage.getItem('notas')) || [];
 
-        notasArr = notasArr.filter(nota => capitalizeFirstLetter(nota.titulo) !== note.querySelector(".main__note-text").textContent);
+        const id = parseInt(note.dataset.id);
+
+        notasArr = notasArr.filter(nota => nota.id !== id);
         localStorage.setItem('notas', JSON.stringify(notasArr));
 
         for (let i = 0; i < notas.length; i++) {
@@ -438,6 +464,214 @@ const crearFormularioNota = () => {
     //Nuevo formulario
     const form = document.createElement("form")
     form.classList.add("form-nueva-nota")
+
+    //Header
+    const HeaderText = document.createElement("h1")
+    HeaderText.id = "headerText"
+    HeaderText.classList.add("headerText")
+    HeaderText.innerHTML = "New task"
+
+    //Campo: Titulo
+    const inputTitulo = document.createElement("input")
+    inputTitulo.classList.add("form-titulo")
+    inputTitulo.id = "titulo"
+    inputTitulo.type = "text"
+    inputTitulo.placeholder = "Task name"
+    inputTitulo.setAttribute("required", "required")
+    
+    //Campo: Descripción
+    const textAreaDeDescripcion = document.createElement("textarea")
+    textAreaDeDescripcion.classList.add("form-descripcion")
+    textAreaDeDescripcion.id = "descripcion"
+    textAreaDeDescripcion.rows = 6;
+    textAreaDeDescripcion.placeholder = "Task Description..."
+    
+    //Campo: Fecha limite
+    const labelFecha = document.createElement("label")
+    labelFecha.textContent = "Due date: ";
+
+    const inputFecha = document.createElement("input")
+    inputFecha.classList.add("form-fecha")
+    inputFecha.id = "fecha"
+    inputFecha.type = "date"
+    const fecha = new Date()
+    const yyyy = fecha.getFullYear()
+    const mm = String(fecha.getMonth() + 1).padStart(2, '0')
+    const dd = String(fecha.getDate()).padStart(2, '0')
+    const fechaHoy = `${yyyy}-${mm}-${dd}`
+    inputFecha.min = fechaHoy
+
+    const contFecha = document.createElement("div") //creamos un contenedor para labelFecha e inputFecha
+    contFecha.classList.add("form-fecha-container")
+    contFecha.append(labelFecha)
+    contFecha.append(inputFecha)
+    
+    //Campo: prioridad(select)
+    const labelPrioridad = document.createElement("label")
+    labelPrioridad.textContent = "Priority: "
+
+    const selectPrioridad = document.createElement("select")
+    const opcion1 = new Option("Low", "low")
+    const opcion2 = new Option("Medium", "medium")
+    const opcion3 = new Option("High", "high")
+
+    selectPrioridad.append(opcion1, opcion2, opcion3)
+    selectPrioridad.id = "prioridad"
+    selectPrioridad.classList.add("form-select")
+
+    const contPrioridad = document.createElement("div") //creamos un contenedor para labelPrioridad y selectPrioridad
+    contPrioridad.classList.add("form-select-container")
+    contPrioridad.append(labelPrioridad)
+    contPrioridad.append(selectPrioridad)
+    
+    //juntamos los contenedores de fecha y prioridad
+    const contFechaPrioridad = document.createElement("div")
+    contFechaPrioridad.classList.add("form-fecha-prioridad-container")
+    contFechaPrioridad.append(contFecha)
+    contFechaPrioridad.append(contPrioridad)
+    
+    //contenedor de los botones enviar y cancelar
+    const contBtns = document.createElement("div")
+    contBtns.classList.add("form-btns-container")
+
+    //botón de carpeta
+    const btnCarpeta = document.createElement("button")
+    btnCarpeta.classList.add("form-btnCarpeta")
+    btnCarpeta.type = "button";
+    btnCarpeta.textContent = "Create folder";
+    const addCarpeta = document.createElement("img")
+    addCarpeta.setAttribute("src", "./assets/folder.png")
+    btnCarpeta.prepend(addCarpeta)
+
+    //botón de enviar
+    const btnSubmit = document.createElement("button")
+    btnSubmit.classList.add("form-btnSubmit")
+    btnSubmit.type = "submit";
+    btnSubmit.textContent = "Add Task";
+
+    //botón de cancelar
+    const btnCancel = document.createElement("button")
+    btnCancel.classList.add("form-btnCancel")
+    btnCancel.type = "button"
+    btnCancel.textContent = "Cancel";
+
+    contBtns.append(btnCancel)  //agregamos los botones al contenedor
+    contBtns.append(btnSubmit)
+
+    //contenedor del footer del formulario(fecha, prioridad, btns)
+    const contFormFooter = document.createElement("footer")
+    contFormFooter.classList.add("form-footer-container")
+
+    //añadimos los contenedor de los botones y el contenedor de la fecha y prioridad al contenedor del footer de el formulario
+    contFormFooter.append(contFechaPrioridad)
+    contFormFooter.append(contBtns)
+
+    //contenedor externos al titulo
+    const contContain = document.createElement("div")
+    contContain.classList.add("form-content-container")
+
+    //añadimos al contenedor los campos del formulario
+    contContain.append(btnCarpeta)
+    contContain.append(inputTitulo)
+    contContain.append(textAreaDeDescripcion)
+    contContain.append(contFormFooter)
+
+    //Añadimos los campos al formulario
+    form.prepend(HeaderText)
+    form.append(contContain)
+
+    return {form, btnCarpeta,inputTitulo, textAreaDeDescripcion, inputFecha, selectPrioridad, btnCancel, btnSubmit};
+}
+
+const crearFormularioCarpeta = () => {
+    //Nuevo formulario
+    const form = document.createElement("form")
+    form.classList.add("form-nueva-carpeta")
+
+    //Header
+    const HeaderText = document.createElement("h1")
+    HeaderText.id = "headerText"
+    HeaderText.classList.add("headerText")
+    HeaderText.innerHTML = "New folder"
+
+    //Campo: Titulo
+    const inputTitulo = document.createElement("input")
+    inputTitulo.classList.add("form-titulo")
+    inputTitulo.id = "titulo"
+    inputTitulo.type = "text"
+    inputTitulo.placeholder = "Folder name"
+    inputTitulo.setAttribute("required", "required")
+    
+    //Campo: Descripción
+    const textAreaDeDescripcion = document.createElement("textarea")
+    textAreaDeDescripcion.classList.add("form-descripcion")
+    textAreaDeDescripcion.id = "descripcion"
+    textAreaDeDescripcion.rows = 6;
+    textAreaDeDescripcion.placeholder = "Folder Description..."
+    
+    //Campo: prioridad(select)
+    const labelPrioridad = document.createElement("label")
+    labelPrioridad.textContent = "Priority: "
+
+    const selectPrioridad = document.createElement("select")
+    const opcion1 = new Option("Low", "low")
+    const opcion2 = new Option("Medium", "medium")
+    const opcion3 = new Option("High", "high")
+
+    selectPrioridad.append(opcion1, opcion2, opcion3)
+    selectPrioridad.id = "prioridad"
+    selectPrioridad.classList.add("form-select")
+
+    const contPrioridad = document.createElement("div") //creamos un contenedor para labelPrioridad y selectPrioridad
+    contPrioridad.classList.add("form-select-container")
+    contPrioridad.append(labelPrioridad)
+    contPrioridad.append(selectPrioridad)
+    
+    //contenedor de los botones enviar y cancelar
+    const contBtns = document.createElement("div")
+    contBtns.classList.add("form-btns-container")
+
+    //botón de enviar
+    const btnSubmit = document.createElement("button")
+    btnSubmit.classList.add("form-btnSubmit")
+    btnSubmit.type = "submit";
+    btnSubmit.textContent = "Add Task";
+
+    //botón de cancelar
+    const btnCancel = document.createElement("button")
+    btnCancel.classList.add("form-btnCancel")
+    btnCancel.type = "button"
+    btnCancel.textContent = "Cancel";
+
+    contBtns.append(btnCancel)  //agregamos los botones al contenedor
+    contBtns.append(btnSubmit)
+
+    //contenedor del footer del formulario(fecha, prioridad, btns)
+    const contFormFooter = document.createElement("footer")
+    contFormFooter.classList.add("form-footer-container")
+
+    //añadimos los contenedor de los botones y prioridad al contenedor del footer de el formulario
+    contFormFooter.append(contBtns)
+
+    //Añadimos los campos al formulario
+    form.prepend(HeaderText)
+    form.append(inputTitulo)
+    form.append(textAreaDeDescripcion)
+    form.append(contFormFooter)
+
+    return {form, inputTitulo, textAreaDeDescripcion, selectPrioridad, btnCancel, btnSubmit};
+}
+
+const crearFormularioNotaParaCarpeta = () => {
+    //Nuevo formulario
+    const form = document.createElement("form")
+    form.classList.add("form-nueva-nota")
+
+    //Header
+    const HeaderText = document.createElement("h1")
+    HeaderText.id = "headerText"
+    HeaderText.classList.add("headerText")
+    HeaderText.innerHTML = "New task"
 
     //Campo: Titulo
     const inputTitulo = document.createElement("input")
@@ -506,7 +740,7 @@ const crearFormularioNota = () => {
     const btnSubmit = document.createElement("button")
     btnSubmit.classList.add("form-btnSubmit")
     btnSubmit.type = "submit";
-    btnSubmit.textContent = "Add Task";
+    btnSubmit.textContent = "Add Task to folder";
 
     //botón de cancelar
     const btnCancel = document.createElement("button")
@@ -525,56 +759,199 @@ const crearFormularioNota = () => {
     contFormFooter.append(contFechaPrioridad)
     contFormFooter.append(contBtns)
 
+    //contenedor externos al titulo
+    const contContain = document.createElement("div")
+    contContain.classList.add("form-content-container")
+
+    //añadimos al contenedor los campos del formulario
+    contContain.append(inputTitulo)
+    contContain.append(textAreaDeDescripcion)
+    contContain.append(contFormFooter)
+
     //Añadimos los campos al formulario
-    form.append(inputTitulo)
-    form.append(textAreaDeDescripcion)
-    form.append(contFormFooter)
+    form.prepend(HeaderText)
+    form.append(contContain)
 
     return {form,inputTitulo, textAreaDeDescripcion, inputFecha, selectPrioridad, btnCancel, btnSubmit};
 }
 
+// función para generar un id único
+function generarId(tipo) {
+    const clave = `ultimoId_${tipo}`;
+    let ultimoId = parseInt(localStorage.getItem(clave));
+
+    // Si no existe contador, lo inicializamos desde los datos guardados
+    if (isNaN(ultimoId)) {
+      let datos = JSON.parse(localStorage.getItem(`${tipo}s`)) || [];
+
+      // Si hay elementos con id, tomamos el mayor. Si no, arrancamos en 0.
+      if (datos.length > 0) {
+        ultimoId = Math.max(...datos.map(d => d.id || 0));
+      } else {
+        ultimoId = 0;
+      }
+  }
+
+  // Incrementamos y guardamos el nuevo valor
+  ultimoId++;
+  localStorage.setItem(clave, ultimoId);
+  return ultimoId;
+}
+
+// 🧹 Corrige notas sin ID (solo una vez)
+function inicializarNotas() {
+    let notas = JSON.parse(localStorage.getItem("notas")) || [];
+
+    if (notas.length > 0 && notas[0].id === undefined) {
+      // Si la primera nota no tiene id, inicializamos todas
+      notas = notas.map((nota, index) => ({
+        id: index + 1,
+        ...nota
+      }));
+
+      localStorage.setItem("notas", JSON.stringify(notas));
+      localStorage.setItem("ultimoId_nota", notas.length);
+      console.log(`✅ Se asignaron IDs automáticamente a ${notas.length} notas.`);
+    }
+}
+
 //  Asocia el evento de submit al formulario, obtiene los datos, crea la nota y la agrega al contenedor.
-const manejarSubmitFormulario = (formulario) => {
+const manejarSubmitFormulario = (formulario, tipo, item="null") => {
 
     let form = formulario.form
-    let inputTitulo = form.querySelector("#titulo");
-    let textArea = form.querySelector("#descripcion");
-    let inputFecha = form.querySelector("#fecha");
-    let selectPrioridad = form.querySelector("#prioridad");
-
+    const inputTitulo = form.querySelector("#titulo") ?? null;
+    const textArea = form.querySelector("#descripcion") ?? null;
+    const inputFecha = form.querySelector("#fecha") ?? null;
+    const selectPrioridad = form.querySelector("#prioridad") ?? null;
+    
     form.addEventListener("submit",(e)=>{
         e.preventDefault();
+        
+        if(tipo.toLowerCase() === "nota"){
+            
+            const newNota = {
+                id: generarId("nota"),
+                titulo: inputTitulo?.value || "",
+                descripcion: textArea?.value || "",
+                fecha: inputFecha?.value || "",
+                prioridad: selectPrioridad?.value || "",
+            };
 
-        const newNota = {
-            titulo: inputTitulo.value, 
-            descripcion: textArea.value, 
-            fecha: inputFecha.value, 
-            prioridad: selectPrioridad.value
-        };
+            if (!localStorage.getItem("notas")) {
+                localStorage.setItem("notas", JSON.stringify([])); // crea vacía si no existe
+            }
 
-        // Guardamos la nota en el localStorage
-        let notas = JSON.parse(localStorage.getItem('notas')) || [];
-        notas.push(newNota);
-        localStorage.setItem('notas', JSON.stringify(notas));
+            // Guardamos la nota en el localStorage
+            let notas = obtenerDatoDelStorage('notas') || [];
+            notas.push(newNota);
+            localStorage.setItem('notas', JSON.stringify(notas));
 
-        //si existe el mensaje "No pending tasks" en pantalla los borramos
-        let msj = document.querySelector(".msjNoTasks")
+            const htmlNote = crearElementoNota(newNota);
+            alert("Guardando nota...")
+            containerNotas.prepend(htmlNote);
+            containerNotas.removeChild(form)
 
-        if (containerNotas.contains(msj)){
-            containerNotas.removeChild(msj)
-            containerNotas.style.display = "flex";
-            containerNotas.style.justifyContent = "stretch"
+        }else if(tipo.toLowerCase() === "carpeta"){
+            const newCarpeta={
+                id: generarId("carpeta"),
+                titulo: inputTitulo?.value || "",
+                descripcion: textArea?.value || "",
+                prioridad: selectPrioridad?.value || "",
+                notas: [] || ""
+            }
+
+            if (!localStorage.getItem("carpetas")) {
+                localStorage.setItem("carpetas", JSON.stringify([])); // crea vacía si no existe
+            }
+
+            let carpetas = JSON.parse(localStorage.getItem('carpetas')) || [];
+
+            carpetas.push(newCarpeta);
+            localStorage.setItem('carpetas', JSON.stringify(carpetas));
+
+            const htmlFolder = crearElementoCarpeta(newCarpeta);
+            containerCarpetas.prepend(htmlFolder);
+            containerNotas.removeChild(form)
+
+        }else if (tipo.toLowerCase() == "notadecarpeta") {
+            const newNotaCarpeta = {
+                id: generarId("nota"),
+                titulo: (inputTitulo?.value || "").trim(),
+                descripcion: (textArea?.value || "").trim(),
+                fecha: inputFecha?.value || "",
+                prioridad: selectPrioridad?.value || ""
+            };
+
+            // Aseguramos que exista la clave carpetas
+            if (!localStorage.getItem("carpetas")) {
+                localStorage.setItem("carpetas", JSON.stringify([]));
+            }
+
+            // Obtenemos array de carpetas desde storage (usa tu helper para parsear)
+            let carpetas = obtenerDatoDelStorage('carpetas') || [];
+
+            // Normalizamos título para buscar (evita problemas de mayus/minus/espacios)
+            const tituloBuscado = (item && item.titulo) ? item.titulo.trim().toLowerCase() : null;
+
+            if (!tituloBuscado) {
+                console.warn("No se recibió una carpeta válida en 'item'. item:", item);
+                toastAlert("info", "Error: carpeta no válida");
+                return;
+            }
+
+            // Buscamos la carpeta por título
+            const index = carpetas.findIndex(c => (c.titulo || "").trim().toLowerCase() === tituloBuscado);
+
+            if (index === -1) {
+                console.warn(`No se encontró la carpeta "${item.titulo}" en localStorage.`);
+                toastAlert("info", `No se encontró la carpeta "${item.titulo}"`);
+                return;
+            }
+
+            // Aseguramos que exista el array notas
+            if (!Array.isArray(carpetas[index].notas)) {
+                carpetas[index].notas = [];
+            }
+
+            // Agregamos la nota y guardamos
+            carpetas[index].notas.push(newNotaCarpeta);
+            try {
+                localStorage.setItem('carpetas', JSON.stringify(carpetas));
+                console.log("Carpeta actualizada y guardada en storage:", carpetas[index]);
+                toastAlert("success", "Nota guardada en la carpeta");
+            } catch (err) {
+                console.error("Error guardando carpetas en localStorage:", err);
+                toastAlert("info", "Error guardando en localStorage");
+                return;
+            }
+
+            containerNotas.innerHTML = "";
+
+            const btnAddNote = document.createElement("button");
+            btnAddNote.innerHTML = "Añadir tarea a la carpeta";
+            btnAddNote.classList.add("btnAddNote");
+            btnAddNote.addEventListener("click", () => {
+                // importamos de nuevo la carpeta actual desde storage para mantenerla actualizada
+                const carpetasActualizadas = obtenerDatoDelStorage('carpetas');
+                const carpetaSeleccionadaActual = carpetasActualizadas[index];
+                formNuevaNotaCarpeta(carpetaSeleccionadaActual);
+            });
+            containerNotas.appendChild(btnAddNote);
+
+            // Añadimos las notas guardadas de la carpeta a la UI
+            carpetas[index].notas.slice().reverse().forEach(nota => {
+                const htmlNote = crearElementoNota(nota);
+                containerNotas.appendChild(htmlNote);
+
+            });
+
+            // cerramos el formulario si estaba abierto
+            if (containerNotas.querySelector(".form-nueva-nota")) {
+                containerNotas.removeChild(containerNotas.querySelector(".form-nueva-nota"));
+            }
         }
-
-        const htmlNote = crearElementoNota(newNota);
-        containerNotas.prepend(htmlNote);
-
-        if (containerNotas.contains(form)) {
-            containerNotas.removeChild(form);
-        }
-
         formExist = false
-    });
+    })
 }
 
 //  coordina las funciones crearFormularioNota() y manejarSubmitFormulario().
@@ -590,7 +967,21 @@ const formNuevaNota = () => {
     }else{
         const formulario = crearFormularioNota();
         formExist = true
-        manejarSubmitFormulario(formulario)
+        manejarSubmitFormulario(formulario, "nota")
+
+        const btnAddFolder = formulario.form.querySelector(".form-btnCarpeta")
+
+        const formularioCarpeta = crearFormularioCarpeta(); // obtiene el <form> creado
+        
+        btnAddFolder.addEventListener("click", ()=>{
+            let oldform = document.querySelector(".main__notes-container")
+
+            oldform.removeChild(oldform.querySelector(".form-nueva-nota"))
+
+            oldform.append(formularioCarpeta.form);
+
+            manejarSubmitFormulario(formularioCarpeta, "carpeta")
+        })
 
         const btnCancel = formulario.form.querySelector(".form-btnCancel")
         btnCancel.addEventListener("click",()=>{
@@ -600,6 +991,28 @@ const formNuevaNota = () => {
         containerNotas.appendChild(formulario.form)
         
     
+    }
+
+}
+
+const formNuevaNotaCarpeta = (carpetaSeleccionada) => {
+    if(formExist){
+        const form = containerNotas.querySelector(".form-nueva-nota")
+        if(form){
+            containerNotas.removeChild(form)
+        }
+        formExist = false
+    }else{
+        const formulario = crearFormularioNotaParaCarpeta();
+        formExist = true
+        manejarSubmitFormulario(formulario, "notaDeCarpeta", carpetaSeleccionada)
+
+        const btnCancel = formulario.form.querySelector(".form-btnCancel")
+        btnCancel.addEventListener("click",()=>{
+            containerNotas.removeChild(formulario.form)
+            formExist = false
+        })
+        containerNotas.appendChild(formulario.form)
     }
 
 }
@@ -857,7 +1270,103 @@ function mensajeNoTareas(){
         containerNotas.style.justifyContent = "stretch"
     }
 }
-mensajeNoTareas()
+
+
+//Función de arrastre de galeria de carpetas
+const carrusel = document.querySelector(".main__folders-container");
+const carruselInner = document.querySelector(".folders-container");
+
+let isDown = false;
+let startX;
+let scrollLeft;
+
+carrusel.addEventListener("mousedown", (e) => {
+  isDown = true;
+  carrusel.classList.add("active");
+  startX = e.pageX - carrusel.offsetLeft;
+  scrollLeft = carrusel.scrollLeft;
+});
+
+carrusel.addEventListener("mouseleave", () => {
+  isDown = false;
+  carrusel.classList.remove("active");
+});
+
+carrusel.addEventListener("mouseup", () => {
+  isDown = false;
+  carrusel.classList.remove("active");
+});
+
+carrusel.addEventListener("mousemove", (e) => {
+  if (!isDown) return;
+  e.preventDefault();
+  const x = e.pageX - carrusel.offsetLeft;
+  const walk = (x - startX) * 2; // multiplicar para velocidad
+  carrusel.scrollLeft = scrollLeft - walk;
+});
+
 
 //Cargamos las notas guardadas en el localStorage al iniciar la aplicación.
-document.addEventListener("DOMContentLoaded", cargarNotas)
+document.addEventListener("DOMContentLoaded", ()=>{
+    inicializarNotas()
+    cargarNotas()
+    mensajeNoTareas()
+    cargarCarpetas()
+    
+    const elementosCarpetas = containerCarpetas.querySelectorAll(".folder")
+    elementosCarpetas.forEach((carpeta)=>{
+
+        const tituloCarpeta = carpeta.querySelector(".folder-title").textContent
+        
+        carpeta.addEventListener("click",()=>{
+            carpeta.classList.toggle("selected")
+
+            //deseleccionamos las otras carpetas iterando sobre ellas y sacando la clase selected
+            elementosCarpetas.forEach((otraCarpeta)=>{
+                if(otraCarpeta !== carpeta){
+                    otraCarpeta.classList.remove("selected")
+                }
+            })
+
+            if(carpeta.classList.contains("selected")){
+
+                const carpetas = obtenerDatoDelStorage('carpetas')
+                //obtenemos la carpeta seleccionada
+                let carpetaSeleccionada = carpetas.find(c => c.titulo == tituloCarpeta)
+
+                //limpiamos las notas
+                containerNotas.innerHTML=""
+                
+                const index = carpetas.findIndex(c => (c.titulo || "").trim().toLowerCase() === tituloCarpeta);
+
+                carpetas[index].notas.slice().reverse().forEach(nota => {
+                    const htmlNote = crearElementoNota(nota);
+                    containerNotas.appendChild(htmlNote);
+                });
+
+                const btnAddNote = document.createElement("button")
+
+                containerNav.replaceChild(btnAddNote, btnAgregarNota)
+
+                btnAddNote.innerHTML="Añadir tarea  a la carpeta"
+                btnAddNote.classList.add("btnAddNote")
+                
+                btnAddNote.addEventListener("click",()=>{
+                    formNuevaNotaCarpeta(carpetaSeleccionada)
+                })
+
+                
+
+                
+            }else{
+                containerNav.replaceChild(btnAgregarNota, btnAddNote )
+                //limpiamos las notas
+                containerNotas.innerHTML=""
+
+                //y recargamos las notas originales
+                cargarNotas()
+            }
+        })
+        
+    })
+})

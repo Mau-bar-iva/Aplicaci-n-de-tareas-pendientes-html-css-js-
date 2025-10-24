@@ -53,7 +53,6 @@ button{
     padding: 15px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
     background: #fff;
     border-bottom-left-radius: 20px;
     border-bottom-Right-radius: 20px;
@@ -364,6 +363,59 @@ button{
     border: none;
     border-radius: 10px;
 }
+
+/* ---- Estilos para carpetas ---- */
+.main__folders-container{
+    width:100%;
+    display: flex;
+    overflow: hidden;
+    cursor: grab;
+    padding: 10px 0;
+    margin-bottom: 10px;
+}
+
+.folders-container{
+    display: flex;
+    transition: transform 0.2s ease;
+}
+.folder{
+    min-width: fit-content;
+    margin-right: 10px;
+    text-align: center;
+    font-size: 18px;
+    background-color: #edeff7;
+    height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    border-radius: 5px;
+    padding: 0 15px;
+    position: relative;
+    border: none;
+    transition: .4s;
+    gap: 5px;
+    cursor: pointer;
+    z-index: 3 !important;
+}
+.folder-title::first-letter{
+    text-transform: uppercase;
+}
+.fa-folder{
+    color: #08235d;
+    font-size: 25px;
+}
+.folder:hover .fa-folder{
+    color: #2255ee;
+    filter: drop-shadow(0px 0px 2px #3374ff);
+    transition: .2s;
+}
+
+.selected{
+    background: #3374ff;
+    color: #fff;
+}
+
+
 /* ---- Formulario de Nueva Nota ----*/
 .form-nueva-nota{
     display: flex;
@@ -377,6 +429,25 @@ button{
     border-bottom-right-radius: 20px;
     top: 0;
     z-index: 2;
+    animation: fadeIn 0.5s ease forwards;
+}
+.headerText{
+    width: auto;
+    color: #fff;
+    align-self: center;
+    font-size: 2rem;
+    font-family: sans-serif;
+    font-weight: 300;
+    padding: 0 40px;
+    margin: 10px 0 0 0;
+    letter-spacing: .1rem;
+    padding-bottom: 2px;
+    border-bottom: 3px solid #81e97e;
+    border-radius:5px;
+}
+.form-content-container{
+    display: flex;
+    flex-direction: column;
     gap: 20px;
 }
 .form-nueva-nota label{
@@ -386,7 +457,7 @@ button{
     background-color: #ffffff;
     border:none;
     padding: 10px 20px;
-    border-radius: 20px;
+    border-radius: 10px;
     user-select: none;
 }
 .form-titulo:focus{
@@ -448,8 +519,24 @@ button{
     border: none;
 }
 .form-btns-container{
+    width: 100%;
     display: flex;
+    justify-content: flex-end;
     gap: 15px;
+}
+.form-btnCarpeta{
+    background: #3374ff;
+    color: #fff;
+    display: flex;
+    outline: 1px solid #ffff;
+    justify-content: center;
+    width: fit-content;
+    padding: 10px;
+    user-select: none;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    gap: 5px;
 }
 .form-btns-container button{
     padding: 10px 20px;
@@ -459,7 +546,8 @@ button{
     border-radius: 10px;
 }
 .form-btns-container button:hover,
-.form-select:hover{
+.form-select:hover,
+.form-btnCarpeta:hover{
     filter: brightness(.9);
 }
 
@@ -486,6 +574,22 @@ button{
     width: 100%;
     resize: none;
     margin: 10px 0;
+}
+
+.form-nueva-carpeta{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 35vh;
+    position:absolute;
+    padding: 10px 40px;
+    background-color: #3374ff;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    top: 0;
+    z-index: 2;
+    gap: 20px;
+    animation: fadeIn 0.5s ease forwards;
 }
 
 /*  ---- Estilos para Toast Alert ---- */
@@ -530,6 +634,17 @@ button{
     text-align: center;
     flex: 1;
     color: #00000061;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Estilos generales para pantallas entre 768px - 1024px*/
