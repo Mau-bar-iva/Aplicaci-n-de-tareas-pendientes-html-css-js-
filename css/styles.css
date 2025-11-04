@@ -7,7 +7,7 @@ html{
     font-family: "Nunito", sans-serif;
 }
 body {
-    background-color: #f1f1e9;
+    background-color: #ebebeb;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -54,7 +54,7 @@ button{
     padding: 15px;
     display: flex;
     flex-direction: column;
-    background: #fff;
+    background: #e7eaf2;
     border-bottom-left-radius: 20px;
     border-bottom-Right-radius: 20px;
 }
@@ -462,7 +462,7 @@ button{
     width: auto;
     color: #fff;
     align-self: center;
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 4vw, 3rem);
     font-family: sans-serif;
     font-weight: 300;
     width: 50%;
@@ -824,6 +824,9 @@ button{
     }
     .main__note-description {
         font-size: 15px;
+    }
+    .headerText{
+        width: 100%;
     }
     .form-fecha-prioridad-container{
         display: flex;
