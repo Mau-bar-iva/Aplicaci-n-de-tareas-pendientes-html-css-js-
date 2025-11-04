@@ -185,7 +185,7 @@ const crearElementoNota = (nota) => {
         const firstChild = e.firstElementChild;
 
         if(firstChild.classList.contains("main__note__actions__button--edit")){
-            e.addEventListener("click",()=>{editNote(nota)})
+            e.addEventListener("click",()=>{editNote(htmlNote)})
         }else if(firstChild.classList.contains("main__note__actions__button--delete")){
             e.addEventListener("click", ()=>{
                 for (let i = 0; i < containerCarpetas.children.length; i++) {
@@ -341,7 +341,6 @@ function btnEllipsisEvent(ellipsisCont){
 
 //  funcion para editar notas
 function editNote(note){
-    console.log("editando nota")
     const noteCheck = note.querySelector(".main__note-checkbox")
     const noteTitle = note.querySelector(".main__note-text")
     const notePriority = note.querySelector(".note-description-priority")
@@ -397,6 +396,7 @@ function editNote(note){
             
     `
     containerNotas.replaceChild(newNote, note)
+
     //establecemos la fecha mínima como la fecha actual
     const dateInput = newNote.querySelector(".note-description-date")
     dateInput.min = new Date().toISOString().split("T")[0] 
@@ -443,6 +443,8 @@ function editNote(note){
     newNote.addEventListener("submit",(e)=>{
         e.preventDefault();
         let notas = obtenerDatoDelStorage('notas');
+        let carpetas = obtenerDatoDelStorage('carpetas')
+
         notas.forEach(nota => {
             if (nota.titulo.trim().toLowerCase() === noteTitle.textContent.trim().toLowerCase()) {
 
@@ -456,8 +458,34 @@ function editNote(note){
                 nota.descripcion = noteDescription.textContent
                 nota.fecha = noteDate.textContent
                 nota.prioridad = newNote.querySelector(".note-description-priority").value
+
+                localStorage.setItem('notas', JSON.stringify(notas));
+                containerNotas.replaceChild(note, newNote)
+                return
             }
         })
+
+        let carpeta = carpetas.find(c => c.notas.some(n => n.titulo.trim().toLowerCase() === noteTitle.textContent.trim().toLowerCase()))
+
+        if (carpeta) {
+            carpeta.notas.forEach(nota => {
+                if (nota.titulo.trim().toLowerCase() === noteTitle.textContent.trim().toLowerCase()) {
+
+                    noteTitle.innerHTML = capitalizeFirstLetter(newNote.querySelector(".note-edit-title").value)
+                    noteDescription.innerHTML = newNote.querySelector(".note-edit-description").value
+                    notePriority.innerHTML = `Priority: ${newNote.querySelector(".note-description-priority").value}`
+                    noteDate.textContent = newNote.querySelector(".note-description-date").value
+                    noteCheck.checked = estadoFinalCheckbox;
+
+                    nota.titulo = noteTitle.textContent
+                    nota.descripcion = noteDescription.textContent
+                    nota.fecha = noteDate.textContent
+                    nota.prioridad = newNote.querySelector(".note-description-priority").value
+
+                    localStorage.setItem("carpetas", JSON.stringify(carpetas));
+                    containerNotas.replaceChild(note, newNote)}
+            })
+        }
 
         localStorage.setItem('notas', JSON.stringify(notas));
         containerNotas.replaceChild(note, newNote)
@@ -803,7 +831,7 @@ const crearFormularioCarpeta = () => {
     const btnSubmit = document.createElement("button")
     btnSubmit.classList.add("form-btnSubmit")
     btnSubmit.type = "submit";
-    btnSubmit.textContent = "Add Task";
+    btnSubmit.textContent = "Add Folder";
 
     //botón de cancelar
     const btnCancel = document.createElement("button")
