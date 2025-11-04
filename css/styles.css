@@ -3,7 +3,9 @@ html{
   scrollbar-gutter: stable;
 }
 }
-
+:root {
+    font-family: "Nunito", sans-serif;
+}
 body {
     background-color: #f1f1e9;
     display: flex;
@@ -11,7 +13,6 @@ body {
     align-items: center;
     min-height: 100vh;
     padding: 20px 0;
-    font-family: sans-serif;
 }
 button{
     user-select: none;
@@ -293,6 +294,7 @@ button{
     border-radius: 2px;
     right: -100px;
     transition: right 1s;
+    user-select: none;
 }
 .actions__container-btns{
     display: flex;
@@ -453,7 +455,7 @@ button{
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     top: 0;
-    z-index: 2;
+    z-index: 5;
     animation: fadeIn 0.5s ease forwards;
 }
 .headerText{
@@ -467,7 +469,7 @@ button{
     margin: 10px 0 0 0;
     letter-spacing: .1rem;
     padding-bottom: 2px;
-    border-bottom: 3px solid #81e97e;
+    border-bottom: 3px solid #2253bf;
     border-radius:5px;
 }
 .form-content-container{
@@ -611,8 +613,8 @@ button{
     background-color: #3374ff;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    top: 0;
-    z-index: 2;
+    top: -4.5rem;
+    z-index: 5;
     gap: 20px;
     animation: fadeIn 0.5s ease forwards;
 }
@@ -743,7 +745,7 @@ button{
     .form-nueva-nota {
         height: auto;
         position: absolute;
-        top: -60px;
+        top: -4.5rem;
         padding: 20px;
         gap: 20px;
         z-index: 7;
