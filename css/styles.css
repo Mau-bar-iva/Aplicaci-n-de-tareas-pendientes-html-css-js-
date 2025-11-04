@@ -54,7 +54,7 @@ button{
     padding: 15px;
     display: flex;
     flex-direction: column;
-    background: #e7eaf2;
+    background: #fafafa;
     border-bottom-left-radius: 20px;
     border-bottom-Right-radius: 20px;
 }
@@ -219,6 +219,13 @@ button{
 }
 .main__note-checkbox:checked{
     color: rgb(51, 116, 255);
+}
+.main__note.checked .main__note-text{
+    text-decoration: line-through;
+    opacity: .6;
+}
+.main__note.checked .main__notes-container-note{
+    filter: brightness(.8);
 }
 .main__note-text{
     width: 0px;

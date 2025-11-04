@@ -108,12 +108,28 @@ function inicializarID(tipo) {
 
 //  Cargar y crear las notas guardadas en el localStorage
 const cargarNotas = () => {
-    let notas = obtenerDatoDelStorage('notas');
-    console.log(notas)
-    notas.forEach(nota => {
+    let notas = obtenerDatoDelStorage('notas') || [];
+
+    // 1️⃣ Aseguramos que todas tengan la propiedad "checked"
+    notas = notas.map(n => ({ ...n, checked: n.checked || false }));
+
+    // 2️⃣ Separar las notas según su estado
+    const notasSinCompletar = notas.filter(n => !n.checked);
+    const notasCompletadas = notas.filter(n => n.checked);
+
+    // 3️⃣ Renderizar primero las pendientes
+    notasSinCompletar.forEach(nota => {
         const htmlNote = crearElementoNota(nota);
-        containerNotas.prepend(htmlNote);
+        containerNotas.appendChild(htmlNote);
     });
+
+    // 4️⃣ Luego las completadas (al final)
+    notasCompletadas.forEach(nota => {
+        const htmlNote = crearElementoNota(nota);
+        containerNotas.appendChild(htmlNote);
+    });
+
+    mensajeNoTareas();
 }
 
 //  Cargar y crear las carpetas guardadas en el localStorage
@@ -170,7 +186,16 @@ const crearElementoNota = (nota) => {
     `
     //  funciones de checkbox
     const checkBox = htmlNote.querySelector(".main__note-checkbox")
-    checkBox.addEventListener('change',()=>{checked(note)})
+    
+    if (nota.checked === true) {
+        checkBox.checked = true;
+        htmlNote.classList.add("checked");
+    } else {
+        checkBox.checked = false;
+        htmlNote.classList.remove("checked");
+    }
+
+    checkBox.addEventListener('change',()=>{checked(htmlNote)})
     
     //  función para mostrar descripción de nota al hacer click en el título
     const texto = htmlNote.querySelector(".main__note-text")
@@ -225,20 +250,46 @@ const crearElementoCarpeta = (carpeta) =>{
 let noteIndexBefore = 0
 
 function checked(note){
+    let notasStorage = obtenerDatoDelStorage("notas")
+    let carpetas = obtenerDatoDelStorage("carpetas")
+
+    let id = parseInt(note.id)
+
+    let nota = notasStorage.find(n => n.id === id)
+
     const checkBox = note.querySelector(".main__note-checkbox")
     
-    if(checkBox.checked){
-        for(let i = 0; i < notas.length; i++){
-        if (notas[i] === note) {
-            noteIndexBefore = i
+    // Si no está en notas generales, buscar dentro de carpetas
+    if (!nota) {
+        for (let carpeta of carpetas) {
+            const encontrada = carpeta.notas.find(n => n.id === id);
+            if (encontrada) {
+                nota = encontrada;
+                break;
+            }
         }
     }
-        containerNotas.removeChild(note)
-        containerNotas.appendChild(note)
-    }else{
-        containerNotas.removeChild(note)
-        containerNotas.insertBefore(note, notas[noteIndexBefore])
+
+    if (!nota) return; // seguridad por si algo falla
+
+    nota.checked = checkBox.checked;
+
+    
+    // --- Reorganizar visualmente las notas ---
+    if (checkBox.checked) {
+        // mover al final si está marcada
+        containerNotas.appendChild(note);
+        note.classList.add("checked");
+    } else {
+        // mover al principio si se desmarca
+        containerNotas.prepend(note);
+        note.classList.remove("checked");
     }
+
+     // Guardamos los cambios en localStorage
+    localStorage.setItem("notas", JSON.stringify(notasStorage));
+    localStorage.setItem("carpetas", JSON.stringify(carpetas));
+
 }
 
 //  funcion para mostrar descripción de tarea
@@ -1009,6 +1060,7 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
         if(tipo.toLowerCase() === "nota"){
             const newNota = {
                 id: generarId("nota"),
+                checked: false,
                 titulo: inputTitulo?.value || "",
                 descripcion: textArea?.value || "",
                 fecha: inputFecha?.value || "",
@@ -1114,6 +1166,7 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
 
             const newNotaCarpeta = {
                 id: generarId("notaCarpetas"),
+                checked: false,
                 titulo: (inputTitulo?.value || "").trim(),
                 descripcion: (textArea?.value || "").trim(),
                 fecha: inputFecha?.value || "",
