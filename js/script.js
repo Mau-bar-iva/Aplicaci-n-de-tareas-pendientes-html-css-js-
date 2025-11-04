@@ -285,11 +285,26 @@ function btnEllipsisEvent(ellipsisCont){
     const btnDeleteCont = ellipsisCont.querySelectorAll(".actions__container-btns")[1]
 
     if(window.matchMedia("(max-width: 500px)").matches){
+        document.querySelectorAll(".menu").forEach(menu => {
+            if (menu !== ellipsisCont) {
+                menu.classList.remove("menu");
+
+                const btns = menu.querySelectorAll(".actions__container-btns");
+
+                btns.forEach(btn => {
+                    btn.style.maxWidth = "0";
+                    btn.style.padding = "0";
+                    btn.style.transform = "scaleX(0)";
+                    btn.style.opacity = "0";
+                });
+            }
+        });
+        
         iconBtnEdit = btnEditCont.getElementsByTagName("svg")[0]
         iconBtnDelete = btnDeleteCont.getElementsByTagName("svg")[0]
         spanBtnEdit = btnEditCont.getElementsByTagName("span")[0]
         spanBtnDelete = btnDeleteCont.getElementsByTagName("span")[0]
-        console.log(iconBtnEdit)
+
         spanBtnEdit.style.display="none"
         spanBtnDelete.style.display="none"
         
@@ -308,6 +323,10 @@ function btnEllipsisEvent(ellipsisCont){
                 iconBtnDelete.setAttribute("fill", "#ffff")
                 }
             )
+        }else{
+            btnEditCont.style = "";
+            btnDeleteCont.style = "";
+
         }
         return
     }
