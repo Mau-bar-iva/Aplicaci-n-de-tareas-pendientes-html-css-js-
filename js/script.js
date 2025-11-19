@@ -180,8 +180,8 @@ const crearElementoNota = (nota) => {
             </div>
             <!-- Nota descripción -->
             <div class="main__note-description">
+                ${!nota.fecha && !nota.descripcion ? "No description available." : ""}
                 <div class = "main__note-description-datePriority-container">
-                    <span class="note-description-priority">Priority: ${nota.prioridad}</span>
                     <span class="note-description-date">${nota.fecha ? nota.fecha : ""}</span>
                 </div>
                 <p class="note-description">${capitalizeFirstLetter(nota.descripcion)}</p>

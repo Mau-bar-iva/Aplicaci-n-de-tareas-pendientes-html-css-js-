@@ -545,10 +545,12 @@ button{
     align-items: center;
     gap: 30px;
     width: 100%;
+    color: #fff;
     padding-left: 20px;
 }
 .form-fecha-container{
     display: inline;
+    color: #fff;
 }
 .form-fecha{
     border: none;
