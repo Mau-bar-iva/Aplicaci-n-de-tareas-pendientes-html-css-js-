@@ -3,7 +3,7 @@ const btnAgregarNota = document.querySelector(".main__nav-button")  //Obtenemos 
 const containerNotas = document.querySelector(".main__notes-container") //Obtenemos el contenedor de las notas
 const notas = containerNotas.children //Obtenemos las notas que hay en el contenedor
 const containerCarpetas = document.querySelector(".folders-container")
-
+const main = document.querySelector(".main")
 //----------------------------------------------------------
 // FUNCIONES AUXILIARES
 
@@ -279,12 +279,8 @@ function checked(note){
     
     // --- Reorganizar visualmente las notas ---
     if (checkBox.checked) {
-        // mover al final si está marcada
-        containerNotas.appendChild(note);
         note.classList.add("checked");
     } else {
-        // mover al principio si se desmarca
-        containerNotas.prepend(note);
         note.classList.remove("checked");
     }
 
@@ -801,9 +797,9 @@ const crearFormularioNota = () => {
             formCarpetaAbierto = false
         })
         
-        let oldform = containerNotas.querySelector(".form-nueva-nota")
+        let oldform = main.querySelector(".form-nueva-nota")
         
-        containerNotas.replaceChild(formularioCarpeta.form, oldform)
+        main.replaceChild(formularioCarpeta.form, oldform)
         //oldform.removeChild(oldform.querySelector(".form-nueva-nota"))
         //oldform.append(formularioCarpeta.form);  
     })
@@ -1078,7 +1074,7 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
 
             containerNotas.prepend(htmlNote);
             mensajeNoTareas()
-            containerNotas.removeChild(form)
+            main.removeChild(form)
             
 
         }else if(tipo.toLowerCase() === "carpeta"){
@@ -1158,7 +1154,7 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
             })
 
             containerCarpetas.prepend(htmlFolder);
-            containerNotas.removeChild(form)
+            main.removeChild(form)
 
         }else if (tipo.toLowerCase() == "notadecarpetas") {
 
@@ -1201,10 +1197,10 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
 
                 mensajeNoTareas()
             });
-
+            main.removeChild(form)
             // cerramos el formulario si estaba abierto
-            if (containerNotas.querySelector(".form-nueva-nota")) {
-                containerNotas.removeChild(containerNotas.querySelector(".form-nueva-nota"));
+            if (main.querySelector(".form-nueva-nota")) {
+                main.removeChild(main.querySelector(".form-nueva-nota"));
             }
         }
         formExist = false
@@ -1215,17 +1211,17 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
 
 const formNuevaNota = () => {
     if(formNotaAbierto){
-        const form = containerNotas.querySelector(".form-nueva-nota")
+        const form = main.querySelector(".form-nueva-nota")
 
         if(form){
-            containerNotas.removeChild(form)
+            main.removeChild(form)
         }
 
         if(formCarpetaAbierto){
-            const form = containerNotas.querySelector(".form-nueva-carpeta")
+            const form = main.querySelector(".form-nueva-carpeta")
 
             if(form){
-                containerNotas.removeChild(form)
+                main.removeChild(form)
             }
 
             formCarpetaAbierto = false
@@ -1239,20 +1235,20 @@ const formNuevaNota = () => {
 
         const btnCancel = formulario.form.querySelector(".form-btnCancel")
         btnCancel.addEventListener("click",()=>{
-            containerNotas.removeChild(formulario.form)
+            main.removeChild(formulario.form)
             formNotaAbierto = false
         })
-        containerNotas.appendChild(formulario.form)
+        main.appendChild(formulario.form)
     }
 
 }
 
 const formNuevaNotaCarpeta = (carpetaSeleccionada) => {
     if(formNotaCarpetaAbierto){
-        const form = containerNotas.querySelector(".form-nueva-nota-carpeta")
+        const form = main.querySelector(".form-nueva-nota-carpeta")
 
         if(form){
-            containerNotas.removeChild(form)
+            main.removeChild(form)
         }
 
         formNotaCarpetaAbierto = false
@@ -1265,11 +1261,11 @@ const formNuevaNotaCarpeta = (carpetaSeleccionada) => {
         const btnCancel = formulario.form.querySelector(".form-btnCancel")
 
         btnCancel.addEventListener("click",()=>{
-            containerNotas.removeChild(formulario.form)
+            main.removeChild(formulario.form)
             formNotaCarpetaAbierto = false
         })
 
-        containerNotas.appendChild(formulario.form)
+        main.appendChild(formulario.form)
     }
 
 }

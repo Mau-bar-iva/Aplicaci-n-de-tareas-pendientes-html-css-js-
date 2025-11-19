@@ -57,6 +57,7 @@ button{
     background: #fafafa;
     border-bottom-left-radius: 20px;
     border-bottom-Right-radius: 20px;
+    position: relative;
 }
 /*Main navegador*/
 .main__nav-container{
@@ -386,7 +387,8 @@ button{
 .main__folders-container{
     width:100%;
     display: flex;
-    overflow: hidden;
+    overflow-x: auto;       /* permite scroll horizontal */
+    overflow-y: hidden;
     cursor: grab;
     padding: 10px 0;
     margin-bottom: 10px;
@@ -460,7 +462,8 @@ button{
     background-color: #3374ff;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    top: 0;
+    top: 4rem;
+    left: 0;
     z-index: 5;
     animation: fadeIn 0.5s ease forwards;
 }
@@ -476,7 +479,8 @@ button{
     background-color: #3374ff;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    top: 0;
+    top: 4rem;
+    left: 0;
     z-index: 5;
     animation: fadeIn 0.5s ease forwards;
 }
@@ -636,7 +640,8 @@ button{
     background-color: #3374ff;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    top: -4.5rem;
+    top: 4rem;
+    left: 0;
     z-index: 5;
     gap: 20px;
     animation: fadeIn 0.5s ease forwards;
