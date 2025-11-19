@@ -7,13 +7,17 @@ const containerCarpetas = document.querySelector(".folders-container")
 //----------------------------------------------------------
 // FUNCIONES AUXILIARES
 
+let formNotaAbierto = false
+let formCarpetaAbierto = false
+let formNotaCarpetaAbierto = false
+
+
 //  función para mostrar mensaje de "No hay tareas"
 function mensajeNoTareas(){
     if(containerNotas.querySelector(".msjNoTasks")){
         containerNotas.removeChild(containerNotas.querySelector(".msjNoTasks"))
     }
-    console.log(notas.length)
-    console.log(containerNotas.length)
+
     if (!containerNotas.querySelector(".msjNoTasks") && notas.length === 0) {
         const msjNoTasks = document.createElement("H1")
 
@@ -235,14 +239,12 @@ const crearElementoNota = (nota) => {
 const crearElementoCarpeta = (carpeta) =>{
     const htmlFolder = document.createElement("div")
     htmlFolder.classList.add("folder")
-
+    htmlFolder.id = carpeta.id
     htmlFolder.innerHTML = `
             <i class="fa-solid fa-folder"></i>
             <span class="folder-title">${carpeta.titulo}</span>
     `
-    
-    
-    
+
     return htmlFolder;
 }
 
@@ -528,6 +530,7 @@ function editNote(note){
                 nota.descripcion = noteDescription.textContent
                 nota.fecha = noteDate.textContent
                 nota.prioridad = newNote.querySelector(".note-description-priority").value
+                nota.checked = noteCheck.checked
 
                 localStorage.setItem('notas', JSON.stringify(notas));
                 containerNotas.replaceChild(note, newNote)
@@ -574,12 +577,7 @@ function toastAlert(alert, text=null){
     const alertInfo = document.createElement("i")
     alertInfo.classList.add("fa-solid")
     alertInfo.classList.add("fa-circle-info")
-    /*const alertWarning = document.createElement("i")
-    alertWarning.classList.add("fa-solid")
-    alertWarning.classList.add("fa-triangle-exclamation")
-    const alertError = document.createElement("i")
-    alertError.classList.add("fa-solid")
-    alertError.classList.add("fa-circle-xmark")*/
+
     const alertSuccess = document.createElement("i")
     alertSuccess.classList.add("fa-solid")
     alertSuccess.classList.add("fa-check")
@@ -697,7 +695,7 @@ function deleteNoteFolder(note){
     let carpetas = obtenerDatoDelStorage("carpetas") || [];
 
     const carpeta = carpetas.find(c => c.notas.some(n => n.id === id));
-    console.log(carpeta)
+
     if (carpeta) {
         carpeta.notas = carpeta.notas.filter(n => n.id !== id);
         localStorage.setItem("carpetas", JSON.stringify(carpetas));
@@ -791,24 +789,24 @@ const crearFormularioNota = () => {
     addCarpeta.classList.add("fa-folder-plus")
 
     btnCarpeta.prepend(addCarpeta)
+
     btnCarpeta.addEventListener("click", ()=>{
-            const formularioCarpeta = crearFormularioCarpeta(); // obtiene el <form> creado
-            
-            const btnCancelCarpeta = formularioCarpeta.btnCancel
-            
-            let oldform = document.querySelector(".main__notes-container")
-            
-            btnCancelCarpeta.addEventListener("click",()=>{
-                oldform.removeChild(formularioCarpeta.form)
-            })
-
-            oldform.removeChild(oldform.querySelector(".form-nueva-nota"))
-
-            oldform.append(formularioCarpeta.form);
-
-            manejarSubmitFormulario(formularioCarpeta, "carpeta")
+        const formularioCarpeta = crearFormularioCarpeta(); // obtiene el <form> creado
+        formCarpetaAbierto = true
+        
+        manejarSubmitFormulario(formularioCarpeta, "carpeta")
+        const btnCancelCarpeta = formularioCarpeta.btnCancel
+        btnCancelCarpeta.addEventListener("click",()=>{
+            oldform.removeChild(formularioCarpeta.form)
+            formCarpetaAbierto = false
         })
-
+        
+        let oldform = containerNotas.querySelector(".form-nueva-nota")
+        
+        containerNotas.replaceChild(formularioCarpeta.form, oldform)
+        //oldform.removeChild(oldform.querySelector(".form-nueva-nota"))
+        //oldform.append(formularioCarpeta.form);  
+    })
     //botón de enviar
     const btnSubmit = document.createElement("button")
     btnSubmit.classList.add("form-btnSubmit")
@@ -931,7 +929,7 @@ const crearFormularioCarpeta = () => {
 const crearFormularioNotaParaCarpeta = () => {
     //Nuevo formulario
     const form = document.createElement("form")
-    form.classList.add("form-nueva-nota")
+    form.classList.add("form-nueva-nota-carpeta")
 
     //Header
     const HeaderText = document.createElement("h1")
@@ -1133,6 +1131,7 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                         containerNotas.appendChild(htmlNote);
                     });
                     btnAddNote.addEventListener("click",()=>{
+                        alert("hola")
                         formNuevaNotaCarpeta(carpetaSeleccionada)
                     })
 
@@ -1141,7 +1140,6 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                     btnAddNote.appendChild(btnAddNotaIcon)
 
                     if(containerNav.firstChild === btnAgregarNota){
-                        alert("hola")
                         containerNav.replaceChild(btnAddNote, btnAgregarNota)
                     }
                 }else{
@@ -1194,11 +1192,13 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                 return;
             }
 
+            containerNotas.innerHTML = ""
 
             // Añadimos las notas guardadas de la carpeta a la UI
             carpeta.notas.slice().reverse().forEach(nota => {
                 const htmlNote = crearElementoNota(nota);
                 containerNotas.appendChild(htmlNote);
+
                 mensajeNoTareas()
             });
 
@@ -1212,27 +1212,35 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
 }
 
 //  coordina las funciones crearFormularioNota() y manejarSubmitFormulario().
-let formExist = false   //variable auxiliar para determinar si ya hay un formulario creado
 
 const formNuevaNota = () => {
-    if(formExist){
+    if(formNotaAbierto){
         const form = containerNotas.querySelector(".form-nueva-nota")
 
         if(form){
             containerNotas.removeChild(form)
         }
 
-        formExist = false
+        if(formCarpetaAbierto){
+            const form = containerNotas.querySelector(".form-nueva-carpeta")
+
+            if(form){
+                containerNotas.removeChild(form)
+            }
+
+            formCarpetaAbierto = false
+        }
+        formNotaAbierto = false
     }else{
         const formulario = crearFormularioNota();
-        formExist = true
-
+        formNotaAbierto = true
+        
         manejarSubmitFormulario(formulario, "nota")
 
         const btnCancel = formulario.form.querySelector(".form-btnCancel")
         btnCancel.addEventListener("click",()=>{
             containerNotas.removeChild(formulario.form)
-            formExist = false
+            formNotaAbierto = false
         })
         containerNotas.appendChild(formulario.form)
     }
@@ -1240,16 +1248,17 @@ const formNuevaNota = () => {
 }
 
 const formNuevaNotaCarpeta = (carpetaSeleccionada) => {
-    if(formExist){
-        const form = containerNotas.querySelector(".form-nueva-nota")
+    if(formNotaCarpetaAbierto){
+        const form = containerNotas.querySelector(".form-nueva-nota-carpeta")
 
         if(form){
             containerNotas.removeChild(form)
         }
-        formExist = false
+
+        formNotaCarpetaAbierto = false
     }else{
         const formulario = crearFormularioNotaParaCarpeta();
-        formExist = true
+        formNotaCarpetaAbierto = true
 
         manejarSubmitFormulario(formulario, "notadecarpetas", carpetaSeleccionada)
 
@@ -1257,7 +1266,7 @@ const formNuevaNotaCarpeta = (carpetaSeleccionada) => {
 
         btnCancel.addEventListener("click",()=>{
             containerNotas.removeChild(formulario.form)
-            formExist = false
+            formNotaCarpetaAbierto = false
         })
 
         containerNotas.appendChild(formulario.form)
@@ -1275,7 +1284,7 @@ function buscarElementos(arrayHtml, busqueda){
     for(let i = 0; i < arrayHtml.length; i++){
         let elemento = arrayHtml[i].querySelector(".main__note-text")
 
-        if(elemento.textContent.startsWith(busqueda)){
+        if(elemento.textContent.toLowerCase().startsWith(busqueda)){
             arrayNotas.push(arrayHtml[i])
         }
     }
@@ -1677,14 +1686,19 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 
                 //limpiamos las notas
                 containerNotas.innerHTML=""
-
+                formNotaCarpetaAbierto = false
                 carpetaSeleccionada.notas.slice().reverse().forEach(nota => {
                     const htmlNote = crearElementoNota(nota);
                     containerNotas.appendChild(htmlNote);
                 });
-                btnAddNote.addEventListener("click",()=>{
-                    formNuevaNotaCarpeta(carpetaSeleccionada)
-                })
+
+                if (!btnAddNote.dataset.listenerAdded) {
+                    btnAddNote.addEventListener("click", ()=>{
+                        formNuevaNotaCarpeta(carpetaSeleccionada)
+                    })
+                    btnAddNote.dataset.listenerAdded = "true"
+                }
+
 
                 mensajeNoTareas();
 

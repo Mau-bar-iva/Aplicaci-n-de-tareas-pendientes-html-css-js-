@@ -450,6 +450,21 @@ button{
     margin: 0;
 }
 
+.form-nueva-nota-carpeta{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 35vh;
+    position:absolute;
+    padding: 10px 40px;
+    background-color: #3374ff;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    top: 0;
+    z-index: 5;
+    animation: fadeIn 0.5s ease forwards;
+}
+
 /* ---- Formulario de Nueva Nota ----*/
 .form-nueva-nota{
     display: flex;
