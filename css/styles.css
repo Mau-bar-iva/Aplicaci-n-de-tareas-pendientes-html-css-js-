@@ -74,7 +74,7 @@ button{
     justify-content: center;
     align-items: center;
 }
-.btnAddNote{
+.btnAddNote, .btnAddNoteFolder{
     padding: 5px 7px;
     background-color: rgb(51, 116, 255);
     border: none;
@@ -83,6 +83,7 @@ button{
     justify-content: center;
     align-items: center;
 }
+
 .main__nav-button-icon{
     font-size: 30px;
     color: #81e97e;
@@ -636,7 +637,7 @@ button{
     display: flex;
     flex-direction: column;
     width: 100%;
-    min-height: 35vh;
+    height: fit-content;
     position:absolute;
     padding: 10px 40px;
     background-color: #3374ff;

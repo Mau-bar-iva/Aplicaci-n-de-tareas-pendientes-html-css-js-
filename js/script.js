@@ -1,24 +1,285 @@
+//Cargamos las notas guardadas en el localStorage al iniciar la aplicación.
+document.addEventListener("DOMContentLoaded", ()=>{
+ // --- 0. Nos aseguramos de que obtenerDatoDelStorage esté disponible ---
+    if (typeof obtenerDatoDelStorage !== "function") {
+        console.error("La función obtenerDatoDelStorage no está definida todavía. Verifica el orden del script.");
+        return;
+    }
+
+    // --- 1. Creamos las keys si no existen ---
+    try {
+        if (localStorage.getItem("notas") === null)
+            localStorage.setItem("notas", JSON.stringify([]));
+        if (localStorage.getItem("carpetas") === null)
+            localStorage.setItem("carpetas", JSON.stringify([]));
+    } catch (err) {
+        console.error("Error inicializando localStorage:", err);
+        return;
+    }
+
+    // --- 2. Obtenemos datos de forma segura ---
+    let carpetas = [];
+    let notas = [];
+
+    try {
+        carpetas = obtenerDatoDelStorage("carpetas");
+        if (!Array.isArray(carpetas)) carpetas = [];
+    } catch (err) {
+        console.warn("Error leyendo 'carpetas'. Se reinicia vacío.", err);
+        carpetas = [];
+        localStorage.setItem("carpetas", JSON.stringify([]));
+    }
+
+    try {
+        notas = obtenerDatoDelStorage("notas");
+        if (!Array.isArray(notas)) notas = [];
+    } catch (err) {
+        console.warn("Error leyendo 'notas'. Se reinicia vacío.", err);
+        notas = [];
+        localStorage.setItem("notas", JSON.stringify([]));
+    }
+
+    // --- 3. Inicializamos IDs (solo si hay contenido) ---
+    if (notas.length > 0) inicializarID("notas");
+    if (carpetas.length > 0) inicializarID("carpetas");
+
+    // --- 4. Normalizamos las notas dentro de carpetas ---
+    let carpetasModificadas = false;
+    carpetas = carpetas.map((carpeta) => {
+        if (!carpeta || typeof carpeta !== "object") return { titulo: "", notas: [] };
+        if (!Array.isArray(carpeta.notas)) {
+            carpeta.notas = [];
+            carpetasModificadas = true;
+        } else {
+            const notasConID = carpeta.notas.map((nota, idx) => ({
+                ...nota,
+                id: (typeof nota.id === "number") ? nota.id : idx + 1
+            }));
+            if (JSON.stringify(notasConID) !== JSON.stringify(carpeta.notas)) {
+                carpeta.notas = notasConID;
+                carpetasModificadas = true;
+            }
+        }
+        return carpeta;
+    });
+
+    if (carpetasModificadas) {
+        localStorage.setItem("carpetas", JSON.stringify(carpetas));
+    }
+
+    // --- 5. Cargamos datos en UI ---
+    if (notas.length > 0) {
+        cargarNotas();
+    }else mensajeNoTareas()
+
+    if (carpetas.length > 0) {
+        cargarCarpetas();
+    }
+
+    //Variables del storage
+    const notasStorage = obtenerDatoDelStorage("notas")
+    const carpetasStorage = obtenerDatoDelStorage("carpetas")
+
+    const elementosCarpetas = containerCarpetas.querySelectorAll(".folder")
+
+    //creamos el boton para añadir notas a las carpetas
+    const btnAddNoteFolder = document.createElement("button")
+    btnAddNoteFolder.classList.add("btnAddNoteFolder")
+    
+    const btnAddNoteFolderIcon = document.createElement("i")
+    btnAddNoteFolderIcon.classList.add("fa-solid", "fa-plus", "main__nav-button-icon");
+
+    btnAddNoteFolder.appendChild(btnAddNoteFolderIcon)
+
+    elementosCarpetas.forEach((carpeta)=>{
+        //obtenemos la carpeta seleccionada
+        const carpetaTitulo = carpeta.querySelector(".folder-title").textContent
+        const carpetaSeleccionada = carpetasStorage.find(c => c.titulo == carpetaTitulo)
+
+        if (!carpeta.dataset.listenerAdded) {
+            carpeta.addEventListener("click",()=>{
+                carpeta.classList.toggle("selected")
+
+                //deseleccionamos las otras carpetas iterando sobre ellas y sacando la clase selected y el botón de eliminar si lo contiene
+                elementosCarpetas.forEach((otraCarpeta)=>{
+                    if(otraCarpeta !== carpeta){
+                        otraCarpeta.classList.remove("selected")
+
+                        if (otraCarpeta.querySelector(".btnEliminarCarpeta")) {
+                            otraCarpeta.removeChild(otraCarpeta.querySelector(".btnEliminarCarpeta"));
+                        }
+                    }
+                })
+            
+                if(carpeta.querySelector(".btnEliminarCarpeta")){
+                    carpeta.removeChild(carpeta.querySelector(".btnEliminarCarpeta"))
+                }
+            
+                // bloque si el botón está seleccionado
+                if(carpeta.classList.contains("selected")){
+                    // añadimos botón para eliminar carpeta y a este su icono
+                    const btnEliminarCarpeta = document.createElement("button")
+                    btnEliminarCarpeta.classList.add("btnEliminarCarpeta")
+                    
+                    const btnEliminarIcon = document.createElement("i")
+                    btnEliminarIcon.classList.add("fa-solid", "fa-circle-xmark", "btnEliminarCarpeta-icon");
+                    btnEliminarCarpeta.appendChild(btnEliminarIcon)
+                
+                    // si no contiene el botón de eliminar carpeta se lo agregamos
+                    if(!carpeta.querySelector(".btnEliminarCarpeta")){
+                        carpeta.appendChild(btnEliminarCarpeta)
+                    }
+                    
+                    // añadimos los eventos al botón de eliminar carpeta
+                    btnEliminarCarpeta.addEventListener("click",(e)=>{
+                        e.stopPropagation();
+
+                        deleteFolder(carpetaSeleccionada)
+
+                        //limpiamos las notas
+                        while (containerNotas.firstChild) {
+                            containerNotas.removeChild(containerNotas.firstChild);
+                        }
+                        
+                        //y recargamos las notas originales
+                        cargarNotas()
+                        containerNav.replaceChild(btnAgregarNota, document.querySelector(".btnAddNoteFolder") )
+                    })
+                    
+                    //limpiamos las notas
+                    while (containerNotas.firstChild) {
+                        containerNotas.removeChild(containerNotas.firstChild);
+                    }
+
+                    //formNotaCarpetaAbierto = false
+                    if(carpetaSeleccionada.notas.length > 0){
+                        carpetaSeleccionada.notas.slice().reverse().forEach(nota => {
+                            const htmlNote = crearElementoNota(nota);
+                            containerNotas.appendChild(htmlNote);
+                        });
+                    }else mensajeNoTareas();
+                    
+                    if (!btnAddNoteFolder.dataset.listenerAdded) {
+                        btnAddNoteFolder.addEventListener("click", ()=>{
+                            formNuevaNotaCarpeta(carpetaSeleccionada)
+                        })
+                        btnAddNoteFolder.dataset.listenerAdded = "true"
+                    }
+
+                    if(!containerNav.querySelector(".btnAddNote")){
+                        containerNav.querySelector(".main__nav-button").replaceWith(btnAddNoteFolder)
+                    }
+
+                }else{ // Bloque si el botón no está seleccionado
+                    const btnAddNoteFolder = document.querySelector(".btnAddNoteFolder")
+                    if(btnAddNoteFolder){
+                        containerNav.replaceChild(btnAgregarNota, btnAddNoteFolder)
+                    }
+                    
+                    //limpiamos las notas
+                    while (containerNotas.firstChild) {
+                        containerNotas.removeChild(containerNotas.firstChild);
+                    }
+                
+                    //y recargamos las notas originales
+                    cargarNotas()
+                }
+            })
+            carpeta.dataset.listenerAdded = "true"
+        }
+    })
+})
+
+const main = document.querySelector(".main")
+
 const containerNav = document.querySelector(".main__nav-container")
 const btnAgregarNota = document.querySelector(".main__nav-button")  //Obtenemos el botón de agregar nota ("+")
+
 const containerNotas = document.querySelector(".main__notes-container") //Obtenemos el contenedor de las notas
-const notas = containerNotas.children //Obtenemos las notas que hay en el contenedor
 const containerCarpetas = document.querySelector(".folders-container")
-const main = document.querySelector(".main")
+
+const notasHTML = containerNotas.children //Obtenemos las notas que hay en el contenedor
+let notasUI = [...containerNotas.querySelectorAll(".main__note")]
+
+let formularioAbierto = null;
+let formNotaCarpetaAbierto = false
+
+let estadoOrden = {
+   alfabetico: false,
+   prioridad: false,
+   fecha: false
+}
 //----------------------------------------------------------
 // FUNCIONES AUXILIARES
 
-let formNotaAbierto = false
-let formCarpetaAbierto = false
-let formNotaCarpetaAbierto = false
+//  función para mostrar alertas
+function toastAlert(alert, text=null){
+    const container = document.querySelector(".container")
 
+    const toastContainer = document.createElement("div")
+    toastContainer.classList.add("toast__alert-container")
+
+    const alertInfo = document.createElement("i")
+    alertInfo.classList.add("fa-solid")
+    alertInfo.classList.add("fa-circle-info")
+
+    const alertSuccess = document.createElement("i")
+    alertSuccess.classList.add("fa-solid")
+    alertSuccess.classList.add("fa-check")
+
+    const alertText = document.createElement("h6")
+    alertText.classList.add("toast__alert-title")
+
+    const btnCloseAlert = document.createElement("button")
+    btnCloseAlert.classList.add("toast__btnClose")
+
+    const iconCloseAlert = document.createElement("i")
+    iconCloseAlert.classList.add("toast__btnClose-icon")
+    iconCloseAlert.classList.add("fa-solid")
+    iconCloseAlert.classList.add("fa-xmark")
+    
+    btnCloseAlert.appendChild(iconCloseAlert)
+
+    btnCloseAlert.addEventListener("click",()=>{
+        container.removeChild(document.querySelector(".toast__alert-container"))
+    })
+    
+    //función para que desaparezca en 5 segundos
+    setTimeout(()=>{
+        container.removeChild(document.querySelector(".toast__alert-container"))
+    }, 5000)
+
+    toastContainer.appendChild(btnCloseAlert)
+
+    const det = alert.toLowerCase()
+
+    if(det == "info"){
+        alertText.innerHTML= text;
+        toastContainer.prepend(alertText)
+        toastContainer.prepend(alertInfo)
+        toastContainer.classList.add("info")
+        container.appendChild(toastContainer)
+        
+    }
+    else if(det == "success"){
+        alertText.innerHTML= text;
+        toastContainer.prepend(alertText)
+        toastContainer.prepend(alertSuccess)
+        toastContainer.classList.add("success")
+        container.appendChild(toastContainer)
+        
+    }else{
+        console.log("hay error")
+    }
+}
 
 //  función para mostrar mensaje de "No hay tareas"
 function mensajeNoTareas(){
     if(containerNotas.querySelector(".msjNoTasks")){
         containerNotas.removeChild(containerNotas.querySelector(".msjNoTasks"))
     }
-
-    if (!containerNotas.querySelector(".msjNoTasks") && notas.length === 0) {
+    
+    if (!containerNotas.querySelector(".msjNoTasks") && notasHTML.length === 0) {
         const msjNoTasks = document.createElement("H1")
 
         msjNoTasks.innerHTML = "No pending tasks";
@@ -108,7 +369,6 @@ function inicializarID(tipo) {
     localStorage.setItem(claveContador, String(datos.length));
     console.log(`✅ Se asignaron IDs automáticamente a ${datos.length} elementos en '${tipo}'.`);
 }
-//----------------------------------------------------------
 
 //  Cargar y crear las notas guardadas en el localStorage
 const cargarNotas = () => {
@@ -141,17 +401,19 @@ const cargarCarpetas = () => {
     let carpetas = obtenerDatoDelStorage('carpetas');
  
     carpetas.forEach(carpeta => {
-        const htmlNote = crearElementoCarpeta(carpeta);
-        containerCarpetas.append(htmlNote);
+        const htmlFolder = crearElementoCarpeta(carpeta);
+
+        containerCarpetas.prepend(htmlFolder);
     });
 }
 
 //  Recibe una nota : { id, titulo, descripcion, fecha, prioridad } y retorna un elemento <div class="main__note">.
-const crearElementoNota = (nota) => {
+const crearElementoNota = (notaStorage) => {
+
     // Creamos el contenedor principal de la nota
     const htmlNote = document.createElement("div")
     htmlNote.classList.add("main__note")
-    htmlNote.id = nota.id;
+    htmlNote.id = notaStorage.id;
 
     // Creamos el contenido interno de la nota utilizando template literals
     htmlNote.innerHTML = `
@@ -161,7 +423,7 @@ const crearElementoNota = (nota) => {
                 <input type="checkbox" class="main__note-checkbox">
                     
                 <!-- Titulo de la tarea a hacer -->
-                <span class="main__note-text">${capitalizeFirstLetter(nota.titulo)}</span>
+                <span class="main__note-text">${capitalizeFirstLetter(notaStorage.titulo)}</span>
 
                 <!-- Boton que despliega las opciones Eliminar y Editar nota -->
                 <div>
@@ -180,18 +442,21 @@ const crearElementoNota = (nota) => {
             </div>
             <!-- Nota descripción -->
             <div class="main__note-description">
-                ${!nota.fecha && !nota.descripcion ? "No description available." : ""}
+                ${!notaStorage.fecha && !notaStorage.descripcion ? "No description available." : ""}
                 <div class = "main__note-description-datePriority-container">
-                    <span class="note-description-date">${nota.fecha ? nota.fecha : ""}</span>
+                    <span class="note-description-date">${notaStorage.fecha ? notaStorage.fecha : ""}</span>
                 </div>
-                <p class="note-description">${capitalizeFirstLetter(nota.descripcion)}</p>
+                <p class="note-description">${capitalizeFirstLetter(notaStorage.descripcion)}</p>
                 
             </div>
     `
     //  funciones de checkbox
     const checkBox = htmlNote.querySelector(".main__note-checkbox")
-    
-    if (nota.checked === true) {
+    const texto = htmlNote.querySelector(".main__note-text")
+    const ellipsisCont = htmlNote.querySelector(".main__note-actions")  //Obtenemos el contenedor del menú de opciones (Editar / Eliminar)
+    const btnEllipsis = htmlNote.querySelector(".main__note-button");   //Obtenemos el botón de opciones (ícono de tres puntos)
+
+    if (notaStorage.checked === true) {
         checkBox.checked = true;
         htmlNote.classList.add("checked");
     } else {
@@ -202,64 +467,47 @@ const crearElementoNota = (nota) => {
     checkBox.addEventListener('change',()=>{checked(htmlNote)})
     
     //  función para mostrar descripción de nota al hacer click en el título
-    const texto = htmlNote.querySelector(".main__note-text")
     texto.addEventListener("click", () => {showNoteDescription(htmlNote)})
-
-    //  Obtenemos los elementos necesarios para las funciones de Editar, Eliminar y el menú de opciones
-    const ellipsisCont = htmlNote.querySelector(".main__note-actions")  //Obtenemos el contenedor del menú de opciones (Editar / Eliminar)
-    const btnEllipsis = htmlNote.querySelector(".main__note-button");   //Obtenemos el botón de opciones (ícono de tres puntos)
 
     //  Añadimos los eventos correspondientes a los botones que esten dentro del contenedor de botones acciones
     htmlNote.querySelectorAll(".actions__container-btns").forEach((e)=>{
         const firstChild = e.firstElementChild;
 
         if(firstChild.classList.contains("main__note__actions__button--edit")){
-            e.addEventListener("click",()=>{editNote(htmlNote)})
+            e.addEventListener("click",()=>{editNote(notaStorage)})
         }else if(firstChild.classList.contains("main__note__actions__button--delete")){
             e.addEventListener("click", ()=>{
                 for (let i = 0; i < containerCarpetas.children.length; i++) {
                     console.log(containerCarpetas.children[i])
                     if(containerCarpetas.children[i].classList.contains("selected") ){
-                        deleteNoteFolder(nota)
+                        deleteNoteFolder(notaStorage)
                         return
                     }
                 }
 
-                deleteNote(nota)
+                deleteNote(notaStorage)
             })
         }
     })
     
     //  Asociamos los eventos a los botones
     btnEllipsis.addEventListener("click",()=>{btnEllipsisEvent(ellipsisCont)})
+    
     return htmlNote;
-}
-
-//  Recibe una carpeta : { id, titulo, descripcion, prioridad } y retorna un elemento <div class="folder">.
-const crearElementoCarpeta = (carpeta) =>{
-    const htmlFolder = document.createElement("div")
-    htmlFolder.classList.add("folder")
-    htmlFolder.id = carpeta.id
-    htmlFolder.innerHTML = `
-            <i class="fa-solid fa-folder"></i>
-            <span class="folder-title">${carpeta.titulo}</span>
-    `
-
-    return htmlFolder;
 }
 
 //  funcion checklist para mover nota al final o devolverla a su posición original según su estado
 let noteIndexBefore = 0
 
-function checked(note){
+function checked(noteHtml){
     let notasStorage = obtenerDatoDelStorage("notas")
     let carpetas = obtenerDatoDelStorage("carpetas")
 
-    let id = parseInt(note.id)
+    let id = parseInt(noteHtml.id)
 
     let nota = notasStorage.find(n => n.id === id)
 
-    const checkBox = note.querySelector(".main__note-checkbox")
+    const checkBox = noteHtml.querySelector(".main__note-checkbox")
     
     // Si no está en notas generales, buscar dentro de carpetas
     if (!nota) {
@@ -279,20 +527,19 @@ function checked(note){
     
     // --- Reorganizar visualmente las notas ---
     if (checkBox.checked) {
-        note.classList.add("checked");
+        noteHtml.classList.add("checked");
     } else {
-        note.classList.remove("checked");
+        noteHtml.classList.remove("checked");
     }
 
      // Guardamos los cambios en localStorage
     localStorage.setItem("notas", JSON.stringify(notasStorage));
     localStorage.setItem("carpetas", JSON.stringify(carpetas));
-
 }
 
 //  funcion para mostrar descripción de tarea
-function showNoteDescription(note){
-    const descripcion = note.querySelector(".main__note-description")
+function showNoteDescription(noteHtml){
+    const descripcion = noteHtml.querySelector(".main__note-description")
     const isVisible = descripcion.classList.contains("main__note-description--visible")
 
     if(!isVisible){
@@ -311,7 +558,7 @@ function showNoteDescription(note){
 
 //  Alternamos la visualización del menú de acciones con el botón de opciones (tres puntos)
 function btnEllipsisEvent(ellipsisCont){
-    document.querySelectorAll(".menu").forEach(menu => {
+    document.querySelectorAll(".main__note-actions.menu").forEach(menu => {
         if (menu !== ellipsisCont) {
             menu.classList.remove("menu");
 
@@ -349,10 +596,10 @@ function btnEllipsisEvent(ellipsisCont){
             }
         });
         
-        iconBtnEdit = btnEditCont.getElementsByTagName("svg")[0]
-        iconBtnDelete = btnDeleteCont.getElementsByTagName("svg")[0]
-        spanBtnEdit = btnEditCont.getElementsByTagName("span")[0]
-        spanBtnDelete = btnDeleteCont.getElementsByTagName("span")[0]
+        const iconBtnEdit = btnEditCont.getElementsByTagName("svg")[0]
+        const iconBtnDelete = btnDeleteCont.getElementsByTagName("svg")[0]
+        const spanBtnEdit = btnEditCont.getElementsByTagName("span")[0]
+        const spanBtnDelete = btnDeleteCont.getElementsByTagName("span")[0]
 
         spanBtnEdit.style.display="none"
         spanBtnDelete.style.display="none"
@@ -408,221 +655,154 @@ function btnEllipsisEvent(ellipsisCont){
 }
 
 //  funcion para editar notas
-function editNote(note){
-    const noteCheck = note.querySelector(".main__note-checkbox")
-    const noteTitle = note.querySelector(".main__note-text")
-    const notePriority = note.querySelector(".note-description-priority")
-    const noteDate = note.querySelector(".note-description-date")
-    const noteDescription = note.querySelector(".note-description")
+function editNote(note) {
 
-    const newNote = document.createElement("form")
-    newNote.classList.add("main__note")
-    newNote.innerHTML = `
-        <!-- Nota individual -->
-            <div class="main__notes-container-note">
-                    <!-- Entrada checkbox para marcar tarea hecha  -->
-                <input type="checkbox" id="note-1-check" class="note-edit-checkbox">
-                    
-                <!-- Titulo de la tarea a hacer -->
-                <input value="${capitalizeFirstLetter(noteTitle.textContent)}" class="note-edit-title" type="text" required>
+    const noteStorageId = parseInt(note.id);
 
-                <!-- Boton que despliega las opciones Eliminar y Editar nota -->
-                <div>
-                    <button type="button" class="note-edit-button"><i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i></button>
-                </div>                
-                <!-- Bloque que contiene los botones Editar y Eliminar nota -->
-                <div class="main__note-actions">
-                    <button class="main__note__actions__button main__note__actions__button--edit">Edit</button>
-                    <button class="main__note__actions__button main__note__actions__button--delete">Delete</button>
-                </div>
-            </div>
+    // Obtenemos el HTML real de la nota en el DOM
+    const notasUI = Array.from(containerNotas.querySelectorAll(".main__note"));
+    const elementNoteHtml = notasUI.find(n => parseInt(n.id) === noteStorageId);
 
-            <div class="main__note-description main__note-description--visible">
-                <div class = "main__note-description-datePriority-container">
-                    <div>
-                        <span>Priority: </span>
+    if (!elementNoteHtml) return;
 
-                        <select class="note-description-priority">
-                            <option class="note-description-priority-low">low</option>
-                            <option class="note-description-priority-medium">medium</option>
-                            <option class="note-description-priority-high">high</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <span>Fecha: </span>
-                        <input type="date" class="note-description-date" value="${noteDate.textContent}">
-                    </div>
-                </div>
-                <textarea class="note-edit-description">${noteDescription.textContent}</textarea>
+    // Datos originales
+    const noteCheck = elementNoteHtml.querySelector(".main__note-checkbox");
+    const noteTitle = elementNoteHtml.querySelector(".main__note-text");
+    const noteDate = elementNoteHtml.querySelector(".note-description-date");
+    const noteDescription = elementNoteHtml.querySelector(".note-description");
 
-                <div class="main__note__btnFormContainer">
-                    <button type="submit" class="main__note__btnForm-edit">Edit</button>
-                    <button class="main__note__btnForm-cancel">Cancel</button>
-                </div>
-            </div>
+    // Crear formulario de edición
+    const form = document.createElement("form");
+    form.classList.add("main__note")
+
+
+    form.innerHTML = `
+        <div class="main__notes-container-note">
+
+            <input type="checkbox" class="note-edit-checkbox" ${noteCheck.checked ? "checked" : ""}>
             
-    `
-    containerNotas.replaceChild(newNote, note)
+            <input value="${capitalizeFirstLetter(noteTitle.textContent)}" class="note-edit-title" type="text" required>
 
-    //establecemos la fecha mínima como la fecha actual
-    const dateInput = newNote.querySelector(".note-description-date")
-    dateInput.min = new Date().toISOString().split("T")[0] 
+            <div>
+                <button type="button" class="note-edit-button">
+                    <i class="fa-solid fa-ellipsis-vertical main__note-button-ellipsis"></i>
+                </button>
+            </div>
+
+            <div class="main__note-actions">
+                <button class="main__note__actions__button main__note__actions__button--edit">Edit</button>
+                <button class="main__note__actions__button main__note__actions__button--delete">Delete</button>
+            </div>
+        </div>
+
+        <div class="main__note-description main__note-description--visible">
+            <div class="main__note-description-datePriority-container">
+
+                <div>
+                    <span>Priority: </span>
+                    <select class="note-description-priority">
+                        <option value="low">low</option>
+                        <option value="medium">medium</option>
+                        <option value="high">high</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <span>Fecha: </span>
+                    <input type="date" class="note-description-date" value="${noteDate.textContent}">
+                </div>
+            </div>
+
+            <textarea class="note-edit-description">${noteDescription.textContent}</textarea>
+
+            <div class="main__note__btnFormContainer">
+                <button type="submit" class="main__note__btnForm-edit">Edit</button>
+                <button type="button" class="main__note__btnForm-cancel">Cancel</button>
+            </div>
+        </div>
+    `;
+
+    containerNotas.replaceChild(form, elementNoteHtml);
+
+    // Fecha mínima
+    const dateInput = form.querySelector(".note-description-date");
+    dateInput.min = new Date().toISOString().split("T")[0];
 
     // establecemos la descripción visible y con altura automática
-    const descripcion = newNote.querySelector(".main__note-description")
+    const descripcion = form.querySelector(".main__note-description")
     descripcion.style.maxHeight = "none"
 
-    //  obtenemos las opciones del elemento select
-    const newNotePriorityLow = newNote.querySelector(".note-description-priority-low")
-    const newNotePriorityMedium = newNote.querySelector(".note-description-priority-medium")
-    const newNotePriorityHigh = newNote.querySelector(".note-description-priority-high")
+    // Prioridad inicial
+    const selectPriority = form.querySelector(".note-description-priority");
+    selectPriority.value = note.prioridad ;
 
-    //  comprueba el texto de prioridad de la nota original y guarda la opcion correspondiente en el select del nuevo form
-    if(notePriority.textContent.includes("low")){
-        newNotePriorityLow.setAttribute("selected", "selected")
-    }else if(notePriority.textContent.includes("medium")){
-        newNotePriorityMedium.setAttribute("selected", "selected")
-    }else if(notePriority.textContent.includes("high")){
-        newNotePriorityHigh.setAttribute("selected", "selected")
-    }
+    // Checkbox edición
+    const editCheck = form.querySelector(".note-edit-checkbox");
+    let estadoFinalCheckbox = editCheck.checked;
 
-    //  función para guardar los cambios del checkbox al editar
-    const newCheck = newNote.querySelector(".note-edit-checkbox")
-    let estadoFinalCheckbox = noteCheck.checked
+    editCheck.addEventListener("change", () => {
+        estadoFinalCheckbox = editCheck.checked;
+    });
 
-    newCheck.addEventListener("change", ()=>{
-        estadoFinalCheckbox = newCheck.checked
-    })
-    
-    //  función cancelar, al hacer click en cancelar se reemplaza la nota editada por la original y se oculta la descripción
-    const btnCancel = newNote.querySelector(".main__note__btnForm-cancel")
-    btnCancel.addEventListener("click",()=>{
-        containerNotas.replaceChild(note, newNote)
-        descripcion.style.maxHeight = descripcion.scrollHeight + "px"
-    
-        requestAnimationFrame(()=>{
-            descripcion.style.maxHeight = "0";
-            descripcion.classList.remove("main__note-description--visible")
-        })
-    })
+    // Botón cancelar
+    const btnCancel = form.querySelector(".main__note__btnForm-cancel");
+    btnCancel.addEventListener("click", () => {
+        containerNotas.replaceChild(elementNoteHtml, form);
+    });
 
-    //al enviarse el formulario el contenido de la nota original se actualiza por los del formulario de editar y se reemplaza por la nueva nota
-    newNote.addEventListener("submit",(e)=>{
+    // PARTE STORAGE / LÓGICA
+    form.addEventListener("submit", (e) => {
         e.preventDefault();
-        let notas = obtenerDatoDelStorage('notas');
-        let carpetas = obtenerDatoDelStorage('carpetas')
 
-        notas.forEach(nota => {
-            if (nota.titulo.trim().toLowerCase() === noteTitle.textContent.trim().toLowerCase()) {
+        let notas = obtenerDatoDelStorage("notas");
+        let carpetas = obtenerDatoDelStorage("carpetas");
 
-                noteTitle.innerHTML = capitalizeFirstLetter(newNote.querySelector(".note-edit-title").value)
-                noteDescription.innerHTML = newNote.querySelector(".note-edit-description").value
-                notePriority.innerHTML = `Priority: ${newNote.querySelector(".note-description-priority").value}`
-                noteDate.textContent = newNote.querySelector(".note-description-date").value
-                noteCheck.checked = estadoFinalCheckbox;
+        const titleInput = form.querySelector(".note-edit-title");
+        const descInput = form.querySelector(".note-edit-description");
+        const priorityInput = form.querySelector(".note-description-priority");
+        const dateInput = form.querySelector(".note-description-date");
 
-                nota.titulo = noteTitle.textContent
-                nota.descripcion = noteDescription.textContent
-                nota.fecha = noteDate.textContent
-                nota.prioridad = newNote.querySelector(".note-description-priority").value
-                nota.checked = noteCheck.checked
+        // Actualizar nota global
+        let nota = notas.find(n => n.id === noteStorageId);
 
-                localStorage.setItem('notas', JSON.stringify(notas));
-                containerNotas.replaceChild(note, newNote)
-                return
-            }
-        })
-
-        let carpeta = carpetas.find(c => c.notas.some(n => n.titulo.trim().toLowerCase() === noteTitle.textContent.trim().toLowerCase()))
-
-        if (carpeta) {
-            carpeta.notas.forEach(nota => {
-                if (nota.titulo.trim().toLowerCase() === noteTitle.textContent.trim().toLowerCase()) {
-
-                    noteTitle.innerHTML = capitalizeFirstLetter(newNote.querySelector(".note-edit-title").value)
-                    noteDescription.innerHTML = newNote.querySelector(".note-edit-description").value
-                    notePriority.innerHTML = `Priority: ${newNote.querySelector(".note-description-priority").value}`
-                    noteDate.textContent = newNote.querySelector(".note-description-date").value
-                    noteCheck.checked = estadoFinalCheckbox;
-
-                    nota.titulo = noteTitle.textContent
-                    nota.descripcion = noteDescription.textContent
-                    nota.fecha = noteDate.textContent
-                    nota.prioridad = newNote.querySelector(".note-description-priority").value
-
-                    localStorage.setItem("carpetas", JSON.stringify(carpetas));
-                    containerNotas.replaceChild(note, newNote)}
-            })
+        if (nota) {
+            nota.titulo = capitalizeFirstLetter(titleInput.value);
+            nota.descripcion = descInput.value;
+            nota.fecha = dateInput.value;
+            nota.prioridad = priorityInput.value;
+            nota.checked = estadoFinalCheckbox;
         }
 
-        localStorage.setItem('notas', JSON.stringify(notas));
-        containerNotas.replaceChild(note, newNote)
-        toastAlert("info", "Success: task edited successfully")
-    })
+        // Actualizar nota en carpeta si existe
+        carpetas.forEach(carpeta => {
+            carpeta.notas.forEach(n => {
+                if (n.id === noteStorageId) {
+                    n.titulo = capitalizeFirstLetter(titleInput.value);
+                    n.descripcion = descInput.value;
+                    n.fecha = dateInput.value;
+                    n.prioridad = priorityInput.value;
+                    n.checked = estadoFinalCheckbox;
+                }
+            });
+        });
 
-    
+        // Guardar en storage
+        localStorage.setItem("notas", JSON.stringify(notas));
+        localStorage.setItem("carpetas", JSON.stringify(carpetas));
+
+        // Actualizar UI (nota original)
+        noteTitle.textContent = capitalizeFirstLetter(titleInput.value);
+        noteDescription.textContent = descInput.value;
+        noteDate.textContent = dateInput.value;
+        noteCheck.checked = estadoFinalCheckbox;
+
+        // Reemplazar form por la nota editada
+        containerNotas.replaceChild(elementNoteHtml, form);
+
+        toastAlert("info", "Success: task edited successfully");
+    });
 }
 
-function toastAlert(alert, text=null){
-    const container = document.querySelector(".container")
-
-    const toastContainer = document.createElement("div")
-    toastContainer.classList.add("toast__alert-container")
-
-    const alertInfo = document.createElement("i")
-    alertInfo.classList.add("fa-solid")
-    alertInfo.classList.add("fa-circle-info")
-
-    const alertSuccess = document.createElement("i")
-    alertSuccess.classList.add("fa-solid")
-    alertSuccess.classList.add("fa-check")
-
-    const alertText = document.createElement("h6")
-    alertText.classList.add("toast__alert-title")
-
-    const btnCloseAlert = document.createElement("button")
-    btnCloseAlert.classList.add("toast__btnClose")
-
-    const iconCloseAlert = document.createElement("i")
-    iconCloseAlert.classList.add("toast__btnClose-icon")
-    iconCloseAlert.classList.add("fa-solid")
-    iconCloseAlert.classList.add("fa-xmark")
-    
-    btnCloseAlert.appendChild(iconCloseAlert)
-
-    btnCloseAlert.addEventListener("click",()=>{
-        container.removeChild(document.querySelector(".toast__alert-container"))
-    })
-    
-    //función para que desaparezca en 5 segundos
-    setTimeout(()=>{
-        container.removeChild(document.querySelector(".toast__alert-container"))
-    }, 5000)
-
-    toastContainer.appendChild(btnCloseAlert)
-
-    const det = alert.toLowerCase()
-
-    if(det == "info"){
-        alertText.innerHTML= text;
-        toastContainer.prepend(alertText)
-        toastContainer.prepend(alertInfo)
-        toastContainer.classList.add("info")
-        container.appendChild(toastContainer)
-        
-    }
-    else if(det == "success"){
-        alertText.innerHTML= text;
-        toastContainer.prepend(alertText)
-        toastContainer.prepend(alertSuccess)
-        toastContainer.classList.add("success")
-        container.appendChild(toastContainer)
-        
-    }else{
-        console.log("hay error")
-    }
-}
 
 //  funcion para eliminar nota
 function deleteNote(note){
@@ -634,13 +814,12 @@ function deleteNote(note){
     const id = parseInt(note.id);
 
     if(des){
-        for(let i = 0; i < notas.length; i++){
-            const note = notas[i];
+        for(let i = 0; i < containerNotas.children.length; i++){
+            const note = containerNotas.children[i];
             let noteId = parseInt(note.id);
 
             if(noteId === id){
-                containerNotas.removeChild(notas[i])
-                mensajeNoTareas()
+                containerNotas.removeChild(containerNotas.children[i])
             }
         }
 
@@ -654,15 +833,33 @@ function deleteNote(note){
         console.log("se canceló la operación")
     }
 }
+
+//  Recibe una carpeta : { id, titulo, descripcion, prioridad } y retorna un elemento <div class="folder">.
+const crearElementoCarpeta = (carpeta) =>{
+    const htmlFolder = document.createElement("div")
+    htmlFolder.classList.add("folder")
+    htmlFolder.id = carpeta.id
+    htmlFolder.innerHTML = `
+            <i class="fa-solid fa-folder"></i>
+            <span class="folder-title">${carpeta.titulo}</span>
+    `
+
+    return htmlFolder;
+}
+
 function deleteFolder(carpeta){
     const des = confirm("Are you sure you want to delete the folder and all its notes?")
 
     if (!des) return;
 
     const id = parseInt(carpeta.id);
-
-    const elemento = containerCarpetas.querySelector(".selected")
-    containerCarpetas.removeChild(elemento)
+    console.log(typeof(containerCarpetas.children[0].id))
+    for(let i = 0; i < containerCarpetas.children.length; i++) {
+        if(parseInt(containerCarpetas.children[i].id) === id){
+            let elemento = containerCarpetas.children[i];
+            containerCarpetas.removeChild(elemento)
+        }
+    }
 
     let carpetas = obtenerDatoDelStorage("carpetas") || [];
     
@@ -671,19 +868,20 @@ function deleteFolder(carpeta){
     
     toastAlert("success", "Success: folder successfully deleted")
 }
+
 function deleteNoteFolder(note){
     const des = confirm("Are you sure you want to delete the note?")
 
     if (!des) return;
 
     const id = parseInt(note.id);
-
+    
     // Eliminamos la nota del contenedor visual
-    for(let i = 0; i < notas.length; i++){
-        const note = notas[i];
+    for(let i = 0; i < containerNotas.children.length; i++){
+        const note = containerNotas.children[i];
         let noteId = parseInt(note.id);
         if(noteId === id){
-            containerNotas.removeChild(notas[i])
+            containerNotas.removeChild(containerNotas.children[i])
             mensajeNoTareas()
         }
     }
@@ -699,6 +897,7 @@ function deleteNoteFolder(note){
     toastAlert("success", "Success: task successfully deleted")
     
 }
+
 //  Encargada solo de crear y retornar el <form>, sin insertarlo en el DOM. retorna diccionario {form,inputTitulo, textAreaDeDescripcion, inputFecha, selectPrioridad, btnCancel, btnSubmit}
 const crearFormularioNota = () => {
     //Nuevo formulario
@@ -788,20 +987,20 @@ const crearFormularioNota = () => {
 
     btnCarpeta.addEventListener("click", ()=>{
         const formularioCarpeta = crearFormularioCarpeta(); // obtiene el <form> creado
-        formCarpetaAbierto = true
+        formularioAbierto = true
         
         manejarSubmitFormulario(formularioCarpeta, "carpeta")
+
         const btnCancelCarpeta = formularioCarpeta.btnCancel
+
+        let oldform = main.querySelector(".form-nueva-nota")
+
         btnCancelCarpeta.addEventListener("click",()=>{
-            oldform.removeChild(formularioCarpeta.form)
-            formCarpetaAbierto = false
+            main.removeChild(formularioCarpeta.form)
+            formularioAbierto = false
         })
         
-        let oldform = main.querySelector(".form-nueva-nota")
-        
         main.replaceChild(formularioCarpeta.form, oldform)
-        //oldform.removeChild(oldform.querySelector(".form-nueva-nota"))
-        //oldform.append(formularioCarpeta.form);  
     })
     //botón de enviar
     const btnSubmit = document.createElement("button")
@@ -862,31 +1061,6 @@ const crearFormularioCarpeta = () => {
     inputTitulo.placeholder = "Folder name"
     inputTitulo.setAttribute("required", "required")
     
-    //Campo: Descripción
-    const textAreaDeDescripcion = document.createElement("textarea")
-    textAreaDeDescripcion.classList.add("form-descripcion")
-    textAreaDeDescripcion.id = "descripcion"
-    textAreaDeDescripcion.rows = 6;
-    textAreaDeDescripcion.placeholder = "Folder Description..."
-    
-    //Campo: prioridad(select)
-    const labelPrioridad = document.createElement("label")
-    labelPrioridad.textContent = "Priority: "
-
-    const selectPrioridad = document.createElement("select")
-    const opcion1 = new Option("Low", "low")
-    const opcion2 = new Option("Medium", "medium")
-    const opcion3 = new Option("High", "high")
-
-    selectPrioridad.append(opcion1, opcion2, opcion3)
-    selectPrioridad.id = "prioridad"
-    selectPrioridad.classList.add("form-select")
-
-    const contPrioridad = document.createElement("div") //creamos un contenedor para labelPrioridad y selectPrioridad
-    contPrioridad.classList.add("form-select-container")
-    contPrioridad.append(labelPrioridad)
-    contPrioridad.append(selectPrioridad)
-    
     //contenedor de los botones enviar y cancelar
     const contBtns = document.createElement("div")
     contBtns.classList.add("form-btns-container")
@@ -916,10 +1090,9 @@ const crearFormularioCarpeta = () => {
     //Añadimos los campos al formulario
     form.prepend(HeaderText)
     form.append(inputTitulo)
-    form.append(textAreaDeDescripcion)
     form.append(contFormFooter)
 
-    return {form, inputTitulo, textAreaDeDescripcion, selectPrioridad, btnCancel, btnSubmit};
+    return {form, inputTitulo, btnCancel, btnSubmit};
 }
 
 const crearFormularioNotaParaCarpeta = () => {
@@ -1120,7 +1293,9 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                     //obtenemos la carpeta seleccionada
                     const carpetaSeleccionada = carpetas.find(c => c.titulo == tituloCarpeta)
                     //limpiamos las notas
-                    containerNotas.innerHTML=""
+                    while (containerNotas.firstChild) {
+                        containerNotas.removeChild(containerNotas.firstChild);
+                    }
 
                     carpetaSeleccionada.notas.slice().reverse().forEach(nota => {
                         const htmlNote = crearElementoNota(nota);
@@ -1136,7 +1311,8 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                     btnAddNote.appendChild(btnAddNotaIcon)
 
                     if(containerNav.firstChild === btnAgregarNota){
-                        containerNav.replaceChild(btnAddNote, btnAgregarNota)
+                        containerNav.querySelector(".main__nav-button").replaceWith(btnAddNote)
+
                     }
                 }else{
                     const btnAddNote = document.querySelector(".btnAddNote")
@@ -1145,11 +1321,12 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                     }
                     
                     //limpiamos las notas
-                    containerNotas.innerHTML=""
+                    while (containerNotas.firstChild) {
+                        containerNotas.removeChild(containerNotas.firstChild);
+                    }
 
                     //y recargamos las notas originales
                     cargarNotas()
-                    mensajeNoTareas();
                 }
             })
 
@@ -1203,40 +1380,40 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                 main.removeChild(main.querySelector(".form-nueva-nota"));
             }
         }
-        formExist = false
+        formularioAbierto = false
     })
 }
 
 //  coordina las funciones crearFormularioNota() y manejarSubmitFormulario().
 
 const formNuevaNota = () => {
-    if(formNotaAbierto){
+    if(formularioAbierto){
         const form = main.querySelector(".form-nueva-nota")
 
         if(form){
             main.removeChild(form)
         }
 
-        if(formCarpetaAbierto){
+        if(formularioAbierto){
             const form = main.querySelector(".form-nueva-carpeta")
 
             if(form){
                 main.removeChild(form)
             }
 
-            formCarpetaAbierto = false
+            formularioAbierto = false
         }
-        formNotaAbierto = false
+        formularioAbierto = false
     }else{
         const formulario = crearFormularioNota();
-        formNotaAbierto = true
+        formularioAbierto = true
         
         manejarSubmitFormulario(formulario, "nota")
 
         const btnCancel = formulario.form.querySelector(".form-btnCancel")
         btnCancel.addEventListener("click",()=>{
             main.removeChild(formulario.form)
-            formNotaAbierto = false
+            formularioAbierto = false
         })
         main.appendChild(formulario.form)
     }
@@ -1280,7 +1457,7 @@ function buscarElementos(arrayHtml, busqueda){
     for(let i = 0; i < arrayHtml.length; i++){
         let elemento = arrayHtml[i].querySelector(".main__note-text")
 
-        if(elemento.textContent.toLowerCase().startsWith(busqueda)){
+        if(elemento.textContent.toLowerCase().includes(busqueda.toLowerCase())){
             arrayNotas.push(arrayHtml[i])
         }
     }
@@ -1338,10 +1515,10 @@ inputBusqueda.addEventListener("input", ()=>{
     if(containerNotas.firstElementChild && containerNotas.firstElementChild.tagName === "H1"){
         return
     }else if(busqueda !== ""){
-        let elementosBuscados = buscarElementos(notas, busqueda)
+        let elementosBuscados = buscarElementos(notasUI, busqueda)
         mostrarElementosBuscados(elementosBuscados)
     }else if(busqueda === ""){
-        mostrarElementosOriginales(notas)
+        mostrarElementosOriginales(notasUI)
     }
 })
 
@@ -1400,7 +1577,7 @@ function ordenarAlfabeticamente(arrayHtml){
     }
     
 }   
-btnOrderAlfabetic.addEventListener("click",()=>{ordenarAlfabeticamente(notas)})
+btnOrderAlfabetic.addEventListener("click",()=>{ordenarAlfabeticamente(notasUI)})
 
 //Ordenar priority
 function ordenarPrioridad(arrayHtml){
@@ -1423,14 +1600,19 @@ function ordenarPrioridad(arrayHtml){
         for(let i = 0; i < prioridad.length ; i++){
             const prioridadActual = prioridad[i]
 
-            for(j = 0; j < arrayElementos.length; j++){
-                const elemento = arrayElementos[j].querySelector(".note-description-priority")
-
-                if(elemento.textContent.toLowerCase().trim().includes(prioridadActual)){
-                    const padreDeElemento = elemento.closest(".main__note")
-                    elementosOrdenados.push(padreDeElemento)
+            notasStorage.forEach(nota => {
+                if(nota.prioridad === prioridadActual){
+                    const id = parseInt(nota.id)
+                    
+                    for(j = 0; j < arrayElementos.length; j++){
+                        if(parseInt(arrayElementos[i].id) === id){
+                            const padreDeElemento = arrayElementos[i].closest(".main__note")
+                            elementosOrdenados.push(padreDeElemento)
+                        }
+                    }
                 }
-            }
+            });
+
         }
 
         if(arrayHtml.length > 1 && contador === 0){
@@ -1455,7 +1637,7 @@ function ordenarPrioridad(arrayHtml){
         
     }
 }   
-btnOrderPriority.addEventListener("click", ()=>{ordenarPrioridad(notas)})
+btnOrderPriority.addEventListener("click", ()=>{ordenarPrioridad(notasUI)})
 
 //Ordenar due date
 function ordenarFechaLimite(arrayHtml){
@@ -1468,15 +1650,11 @@ function ordenarFechaLimite(arrayHtml){
         const elementoFecha = elemento.querySelector(".note-description-date")?.textContent
         if(!elementoFecha) return;
 
-        const fechaElemento = new Date(elementoFecha)
-
-        const nodo = elemento.closest(".main__note")
-
-        if(fechaElemento >= hoy){
-            elementosOrdenados.push(nodo)
-        }else{
-            elementosOrdenados.push(nodo)
-        }
+        elementosOrdenados = [...notasUI].sort((a, b) => {
+            const fa = new Date(a.querySelector(".note-description-date").textContent)
+            const fb = new Date(b.querySelector(".note-description-date").textContent)
+            return fa - fb
+        })
     })
 
     if(arrayHtml.length > 1 && contador === 0){
@@ -1506,7 +1684,7 @@ function ordenarFechaLimite(arrayHtml){
     }
     
 }   
-btnOrderDueDate.addEventListener("click", ()=>{ordenarFechaLimite(notas)})
+btnOrderDueDate.addEventListener("click", ()=>{ordenarFechaLimite(notasUI)})
 
 //*  --- Pantalla Principal ---
 //Función de arrastre de galeria de carpetas
@@ -1541,182 +1719,3 @@ carrusel.addEventListener("mousemove", (e) => {
   const walk = (x - startX) * 2; // multiplicar para velocidad
   carrusel.scrollLeft = scrollLeft - walk;
 });
-
-
-//Cargamos las notas guardadas en el localStorage al iniciar la aplicación.
-document.addEventListener("DOMContentLoaded", ()=>{
- // --- 0. Nos aseguramos de que obtenerDatoDelStorage esté disponible ---
-    if (typeof obtenerDatoDelStorage !== "function") {
-        console.error("❌ La función obtenerDatoDelStorage no está definida todavía. Verifica el orden del script.");
-        return;
-    }
-
-    // --- 1. Creamos las keys si no existen ---
-    try {
-        if (localStorage.getItem("notas") === null)
-            localStorage.setItem("notas", JSON.stringify([]));
-        if (localStorage.getItem("carpetas") === null)
-            localStorage.setItem("carpetas", JSON.stringify([]));
-    } catch (err) {
-        console.error("❌ Error inicializando localStorage:", err);
-        return;
-    }
-
-    // --- 2. Obtenemos datos de forma segura ---
-    let carpetas = [];
-    let notas = [];
-
-    try {
-        carpetas = obtenerDatoDelStorage("carpetas");
-        if (!Array.isArray(carpetas)) carpetas = [];
-    } catch (err) {
-        console.warn("⚠️ Error leyendo 'carpetas'. Se reinicia vacío.", err);
-        carpetas = [];
-        localStorage.setItem("carpetas", JSON.stringify([]));
-    }
-
-    try {
-        notas = obtenerDatoDelStorage("notas");
-        if (!Array.isArray(notas)) notas = [];
-    } catch (err) {
-        console.warn("⚠️ Error leyendo 'notas'. Se reinicia vacío.", err);
-        notas = [];
-        localStorage.setItem("notas", JSON.stringify([]));
-    }
-
-    // --- 3. Inicializamos IDs (solo si hay contenido) ---
-    if (notas.length > 0) inicializarID("notas");
-    if (carpetas.length > 0) inicializarID("carpetas");
-
-    // --- 4. Normalizamos las notas dentro de carpetas ---
-    let carpetasModificadas = false;
-    carpetas = carpetas.map((carpeta) => {
-        if (!carpeta || typeof carpeta !== "object") return { titulo: "", notas: [] };
-        if (!Array.isArray(carpeta.notas)) {
-            carpeta.notas = [];
-            carpetasModificadas = true;
-        } else {
-            const notasConID = carpeta.notas.map((nota, idx) => ({
-                ...nota,
-                id: (typeof nota.id === "number") ? nota.id : idx + 1
-            }));
-            if (JSON.stringify(notasConID) !== JSON.stringify(carpeta.notas)) {
-                carpeta.notas = notasConID;
-                carpetasModificadas = true;
-            }
-        }
-        return carpeta;
-    });
-
-    if (carpetasModificadas) {
-        localStorage.setItem("carpetas", JSON.stringify(carpetas));
-    }
-
-    // --- 5. Cargamos datos en UI ---
-    if (notas.length > 0) {
-        cargarNotas();
-    } else {
-        mensajeNoTareas();
-    }
-
-    if (carpetas.length > 0) {
-        cargarCarpetas();
-    }
-
-    const elementosCarpetas = containerCarpetas.querySelectorAll(".folder")
-    elementosCarpetas.forEach((carpeta)=>{
-        const btnAddNote = document.createElement("button")
-        btnAddNote.classList.add("btnAddNote")
-
-        const btnAddNotaIcon = document.createElement("i")
-        btnAddNotaIcon.classList.add("fa-solid", "fa-plus", "main__nav-button-icon");
-
-        const tituloCarpeta = carpeta.querySelector(".folder-title").textContent
-        carpeta.addEventListener("click",()=>{
-            carpeta.classList.toggle("selected")
-            //deseleccionamos las otras carpetas iterando sobre ellas y sacando la clase selected
-            elementosCarpetas.forEach((otraCarpeta)=>{
-                if(otraCarpeta !== carpeta){
-                    otraCarpeta.classList.remove("selected")
-                }
-                if (otraCarpeta.querySelector(".btnEliminarCarpeta")) {
-                    otraCarpeta.removeChild(otraCarpeta.querySelector(".btnEliminarCarpeta"));
-                }
-            })
-
-            if(carpeta.querySelector(".btnEliminarCarpeta")){
-                carpeta.removeChild(carpeta.querySelector(".btnEliminarCarpeta"))
-            }
-
-            if(carpeta.classList.contains("selected")){
-                
-                const carpetas = obtenerDatoDelStorage('carpetas')
-                //obtenemos la carpeta seleccionada
-                const carpetaSeleccionada = carpetas.find(c => c.titulo == tituloCarpeta)
-
-                // añadimos botón para eliminar carpeta
-                const btnEliminarCarpeta = document.createElement("button")
-                btnEliminarCarpeta.classList.add("btnEliminarCarpeta")
-                
-                const btnEliminarIcon = document.createElement("i")
-                btnEliminarIcon.classList.add("fa-solid", "fa-circle-xmark", "btnEliminarCarpeta-icon");
-                btnEliminarCarpeta.appendChild(btnEliminarIcon)
-
-                
-                if(!carpeta.querySelector(".btnEliminarCarpeta")){
-                    carpeta.appendChild(btnEliminarCarpeta)
-                }
-
-                
-                btnEliminarCarpeta.addEventListener("click",(e)=>{
-                    e.stopPropagation();
-                    deleteFolder(carpetaSeleccionada)
-                    //limpiamos las notas
-                    containerNotas.innerHTML=""
-                    //y recargamos las notas originales
-                    cargarNotas()
-                    mensajeNoTareas();
-                    containerNav.replaceChild(btnAgregarNota, document.querySelector(".btnAddNote") )
-                })
-
-                
-                //limpiamos las notas
-                containerNotas.innerHTML=""
-                formNotaCarpetaAbierto = false
-                carpetaSeleccionada.notas.slice().reverse().forEach(nota => {
-                    const htmlNote = crearElementoNota(nota);
-                    containerNotas.appendChild(htmlNote);
-                });
-
-                if (!btnAddNote.dataset.listenerAdded) {
-                    btnAddNote.addEventListener("click", ()=>{
-                        formNuevaNotaCarpeta(carpetaSeleccionada)
-                    })
-                    btnAddNote.dataset.listenerAdded = "true"
-                }
-
-
-                mensajeNoTareas();
-
-                btnAddNote.appendChild(btnAddNotaIcon)
-                if(!containerNav.querySelector(".btnAddNote")){
-                    containerNav.replaceChild(btnAddNote, btnAgregarNota)
-                }
-
-                
-            }else{
-                const btnAddNote = document.querySelector(".btnAddNote")
-                if(btnAddNote){
-                    containerNav.replaceChild(btnAgregarNota, btnAddNote )
-                }
-                
-                //limpiamos las notas
-                containerNotas.innerHTML=""
-
-                //y recargamos las notas originales
-                cargarNotas()
-                mensajeNoTareas();
-            }
-        }) 
-    })
-})
