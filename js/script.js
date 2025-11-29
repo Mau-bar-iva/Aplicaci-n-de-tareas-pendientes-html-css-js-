@@ -94,8 +94,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
     elementosCarpetas.forEach((carpeta)=>{
         //obtenemos la carpeta seleccionada
+        const carpetasActualizadas = obtenerDatoDelStorage("carpetas");
         const id= carpeta.id
-        const carpetaSeleccionada = carpetasStorage.find(c => c.id == id)
+        const carpetaSeleccionada = carpetasActualizadas.find(c => c.id == id);
 
         if (!carpeta.dataset.listenerAdded) {
             carpeta.addEventListener("click",()=>{
@@ -1349,14 +1350,30 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                         actualizarNotasUI();
                     })
                     
+
                     //limpiamos las notas
                     while (containerNotas.firstChild) {
                         containerNotas.removeChild(containerNotas.firstChild);
                     }
                     
+                    let carpetas = obtenerDatoDelStorage('carpetas') || [];
+                    let carpetaSeleccionada = containerCarpetas.querySelector(".selected");
+
+                    const carpeta = carpetas.find(c => c.id === parseInt(carpetaSeleccionada.id));
+
+
+                    if(carpeta.notas.length > 0){
+                        carpeta.notas.slice().reverse().forEach(nota => {
+                            const htmlNote = crearElementoNota(nota);
+                            containerNotas.appendChild(htmlNote);
+
+                        });
+                        actualizarNotasUI();
+                    }else mensajeNoTareas();
+
                     if (!btnAddNoteFolder.dataset.listenerAdded) {
                         btnAddNoteFolder.addEventListener("click", ()=>{
-                            formNuevaNotaCarpeta(carpetaSeleccionada)
+                            formNuevaNotaCarpeta(htmlFolder)
                         })
                         btnAddNoteFolder.dataset.listenerAdded = "true"
                     }
@@ -1391,7 +1408,7 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
             actualizarNotasUI()
             main.removeChild(form)
 
-        }else if (tipo.toLowerCase() == "notadecarpetas") {
+        }else if (tipo.toLowerCase() === "notadecarpetas") {
 
             const newNotaCarpeta = {
                 id: generarId("nota"),
@@ -1409,16 +1426,13 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
 
             // Obtenemos array de carpetas desde storage (usa tu helper para parsear)
             let carpetas = obtenerDatoDelStorage('carpetas') || [];
-            const carpeta = carpetas.find(c => c.id === carpetaSeleccionada.id || c.titulo === carpetaSeleccionada.titulo);
+            let carpetaSeleccionada = containerCarpetas.querySelector(".selected");
+
+            const carpeta = carpetas.find(c => c.id === parseInt(carpetaSeleccionada.id));
 
             // Agregamos la nota y guardamos
-            if(carpeta.notas){
-                carpeta.notas.push(newNotaCarpeta);
-            }else{
-                carpeta.notas = [newNotaCarpeta];
-            }
+            carpeta.notas.push(newNotaCarpeta);
             
-
             try {
                 localStorage.setItem('carpetas', JSON.stringify(carpetas));
                 toastAlert("success", "Nota guardada en la carpeta");
@@ -1434,7 +1448,6 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                 const htmlNote = crearElementoNota(nota);
                 containerNotas.appendChild(htmlNote);
 
-                
                 mensajeNoTareas()
             });
             actualizarNotasUI()
