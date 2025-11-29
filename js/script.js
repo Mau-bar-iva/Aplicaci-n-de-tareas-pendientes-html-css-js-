@@ -1412,7 +1412,12 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
             const carpeta = carpetas.find(c => c.id === carpetaSeleccionada.id || c.titulo === carpetaSeleccionada.titulo);
 
             // Agregamos la nota y guardamos
-           carpeta.notas.push(newNotaCarpeta);
+            if(carpeta.notas){
+                carpeta.notas.push(newNotaCarpeta);
+            }else{
+                carpeta.notas = [newNotaCarpeta];
+            }
+            
 
             try {
                 localStorage.setItem('carpetas', JSON.stringify(carpetas));
