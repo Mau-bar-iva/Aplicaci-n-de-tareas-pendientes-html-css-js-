@@ -70,6 +70,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     // --- 5. Cargamos datos en UI ---
     if (notas.length > 0) {
         cargarNotas();
+        actualizarNotasUI()
     }else mensajeNoTareas()
 
     if (carpetas.length > 0) {
@@ -93,8 +94,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
     elementosCarpetas.forEach((carpeta)=>{
         //obtenemos la carpeta seleccionada
-        const carpetaTitulo = carpeta.querySelector(".folder-title").textContent
-        const carpetaSeleccionada = carpetasStorage.find(c => c.titulo == carpetaTitulo)
+        const id= carpeta.id
+        const carpetaSeleccionada = carpetasStorage.find(c => c.id == id)
 
         if (!carpeta.dataset.listenerAdded) {
             carpeta.addEventListener("click",()=>{
@@ -134,29 +135,31 @@ document.addEventListener("DOMContentLoaded", ()=>{
                     btnEliminarCarpeta.addEventListener("click",(e)=>{
                         e.stopPropagation();
 
-                        deleteFolder(carpetaSeleccionada)
-
+                        
+                        const old = containerNav.querySelector(".btnAddNoteFolder")
+                        if (old) containerNav.replaceChild(btnAgregarNota, old)
                         //limpiamos las notas
                         while (containerNotas.firstChild) {
                             containerNotas.removeChild(containerNotas.firstChild);
                         }
-                        
+                        deleteFolder(carpetaSeleccionada)
                         //y recargamos las notas originales
                         cargarNotas()
-                        containerNav.replaceChild(btnAgregarNota, document.querySelector(".btnAddNoteFolder") )
+                        actualizarNotasUI();
                     })
                     
                     //limpiamos las notas
                     while (containerNotas.firstChild) {
                         containerNotas.removeChild(containerNotas.firstChild);
                     }
-
-                    //formNotaCarpetaAbierto = false
+                    
                     if(carpetaSeleccionada.notas.length > 0){
                         carpetaSeleccionada.notas.slice().reverse().forEach(nota => {
                             const htmlNote = crearElementoNota(nota);
                             containerNotas.appendChild(htmlNote);
+
                         });
+                        actualizarNotasUI();
                     }else mensajeNoTareas();
                     
                     if (!btnAddNoteFolder.dataset.listenerAdded) {
@@ -166,14 +169,19 @@ document.addEventListener("DOMContentLoaded", ()=>{
                         btnAddNoteFolder.dataset.listenerAdded = "true"
                     }
 
-                    if(!containerNav.querySelector(".btnAddNote")){
-                        containerNav.querySelector(".main__nav-button").replaceWith(btnAddNoteFolder)
+                    if(containerNav.querySelector(".btnAddNote")){
+                        const old = containerNav.querySelector(".btnAddNote")
+                        if (old){
+                            containerNav.replaceChild(btnAddNoteFolder, old)
+                        }
                     }
 
                 }else{ // Bloque si el botón no está seleccionado
                     const btnAddNoteFolder = document.querySelector(".btnAddNoteFolder")
                     if(btnAddNoteFolder){
-                        containerNav.replaceChild(btnAgregarNota, btnAddNoteFolder)
+                        const old = containerNav.querySelector(".btnAddNoteFolder")
+                        if (old) containerNav.replaceChild(btnAgregarNota, old)
+
                     }
                     
                     //limpiamos las notas
@@ -183,6 +191,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
                 
                     //y recargamos las notas originales
                     cargarNotas()
+                    actualizarNotasUI();
                 }
             })
             carpeta.dataset.listenerAdded = "true"
@@ -294,6 +303,7 @@ function mensajeNoTareas(){
 
 //  función para tranformar primera letra en mayúscula
 const capitalizeFirstLetter = (str) =>{
+    if (!str || typeof str !== "string") return "";
     if(!str) return str;
     return str.charAt(0).toUpperCase() + str.slice(1)
 }
@@ -336,6 +346,10 @@ function generarId(tipo) {
   localStorage.setItem(clave, ultimoId);
   return ultimoId;
 }
+
+function actualizarNotasUI() {
+    notasUI = [...containerNotas.querySelectorAll(".main__note")];
+}  
 
 // Corrige datos sin ID (solo una vez)
 function inicializarID(tipo) {
@@ -478,7 +492,6 @@ const crearElementoNota = (notaStorage) => {
         }else if(firstChild.classList.contains("main__note__actions__button--delete")){
             e.addEventListener("click", ()=>{
                 for (let i = 0; i < containerCarpetas.children.length; i++) {
-                    console.log(containerCarpetas.children[i])
                     if(containerCarpetas.children[i].classList.contains("selected") ){
                         deleteNoteFolder(notaStorage)
                         return
@@ -673,7 +686,7 @@ function editNote(note) {
 
     // Crear formulario de edición
     const form = document.createElement("form");
-    form.classList.add("main__note")
+    form.classList.add("form-editar-nota");
 
 
     form.innerHTML = `
@@ -748,6 +761,8 @@ function editNote(note) {
     const btnCancel = form.querySelector(".main__note__btnForm-cancel");
     btnCancel.addEventListener("click", () => {
         containerNotas.replaceChild(elementNoteHtml, form);
+        actualizarNotasUI()
+        formNotaCarpetaAbierto = false;
     });
 
     // PARTE STORAGE / LÓGICA
@@ -771,38 +786,40 @@ function editNote(note) {
             nota.fecha = dateInput.value;
             nota.prioridad = priorityInput.value;
             nota.checked = estadoFinalCheckbox;
-        }
-
-        // Actualizar nota en carpeta si existe
-        carpetas.forEach(carpeta => {
-            carpeta.notas.forEach(n => {
-                if (n.id === noteStorageId) {
-                    n.titulo = capitalizeFirstLetter(titleInput.value);
-                    n.descripcion = descInput.value;
-                    n.fecha = dateInput.value;
-                    n.prioridad = priorityInput.value;
-                    n.checked = estadoFinalCheckbox;
-                }
+        }else{
+            // Actualizar nota en carpeta si existe
+            carpetas.forEach(carpeta => {
+                carpeta.notas.forEach(n => {
+                    if (n.id === noteStorageId) {
+                        n.titulo = capitalizeFirstLetter(titleInput.value);
+                        n.descripcion = descInput.value;
+                        n.fecha = dateInput.value;
+                        n.prioridad = priorityInput.value;
+                        n.checked = estadoFinalCheckbox;
+                    }
+                });
             });
-        });
+            actualizarNotasUI();
+        }
 
         // Guardar en storage
         localStorage.setItem("notas", JSON.stringify(notas));
         localStorage.setItem("carpetas", JSON.stringify(carpetas));
 
-        // Actualizar UI (nota original)
-        noteTitle.textContent = capitalizeFirstLetter(titleInput.value);
-        noteDescription.textContent = descInput.value;
-        noteDate.textContent = dateInput.value;
-        noteCheck.checked = estadoFinalCheckbox;
+        // Cerramos form
+        form.remove();
+        formNotaCarpetaAbierto = false;
 
-        // Reemplazar form por la nota editada
-        containerNotas.replaceChild(elementNoteHtml, form);
+        // Limpiamos UI
+        containerNotas.innerHTML = "";
+
+        // Recargamos todas las notas desde storage
+        cargarNotas();
+        actualizarNotasUI();  // si la usás para bindear eventos
 
         toastAlert("info", "Success: task edited successfully");
     });
 }
-
 
 //  funcion para eliminar nota
 function deleteNote(note){
@@ -820,6 +837,8 @@ function deleteNote(note){
 
             if(noteId === id){
                 containerNotas.removeChild(containerNotas.children[i])
+                elementNoteHtml.remove();
+                actualizarNotasUI()
             }
         }
 
@@ -853,14 +872,14 @@ function deleteFolder(carpeta){
     if (!des) return;
 
     const id = parseInt(carpeta.id);
-    console.log(typeof(containerCarpetas.children[0].id))
+
     for(let i = 0; i < containerCarpetas.children.length; i++) {
         if(parseInt(containerCarpetas.children[i].id) === id){
             let elemento = containerCarpetas.children[i];
             containerCarpetas.removeChild(elemento)
         }
     }
-
+    actualizarNotasUI()
     let carpetas = obtenerDatoDelStorage("carpetas") || [];
     
     carpetas = carpetas.filter(c => c.id !== id);
@@ -885,7 +904,7 @@ function deleteNoteFolder(note){
             mensajeNoTareas()
         }
     }
-
+    actualizarNotasUI()
     let carpetas = obtenerDatoDelStorage("carpetas") || [];
 
     const carpeta = carpetas.find(c => c.notas.some(n => n.id === id));
@@ -1246,6 +1265,7 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
             const htmlNote = crearElementoNota(newNota);
 
             containerNotas.prepend(htmlNote);
+            actualizarNotasUI()
             mensajeNoTareas()
             main.removeChild(form)
             
@@ -1269,74 +1289,112 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
             localStorage.setItem('carpetas', JSON.stringify(carpetas));
 
             const htmlFolder = crearElementoCarpeta(newCarpeta);
+            let elementosCarpetas = containerCarpetas.querySelectorAll(".folder")
+
+            //creamos el boton para añadir notas a las carpetas
+            const btnAddNoteFolder = document.createElement("button")
+            btnAddNoteFolder.classList.add("btnAddNoteFolder")
+            
+            const btnAddNoteFolderIcon = document.createElement("i")
+            btnAddNoteFolderIcon.classList.add("fa-solid", "fa-plus", "main__nav-button-icon");
+
+            btnAddNoteFolder.appendChild(btnAddNoteFolderIcon)
 
             htmlFolder.addEventListener("click",()=>{
-                const btnAddNote = document.createElement("button")
-                btnAddNote.classList.add("btnAddNote")
-
-                const btnAddNotaIcon = document.createElement("i")
-                btnAddNotaIcon.classList.add("fa-solid", "fa-plus", "main__nav-button-icon");
-                
-                const tituloCarpeta = carpetaSeleccionada.titulo
-
                 htmlFolder.classList.toggle("selected")
-                //deseleccionamos las otras carpetas iterando sobre ellas y sacando la clase selected
-                const elementosCarpetas = containerCarpetas.querySelectorAll(".folder")
+
+                //deseleccionamos las otras carpetas iterando sobre ellas y sacando la clase selected y el botón de eliminar si lo contiene
                 elementosCarpetas.forEach((otraCarpeta)=>{
                     if(otraCarpeta !== htmlFolder){
                         otraCarpeta.classList.remove("selected")
+
+                        if (otraCarpeta.querySelector(".btnEliminarCarpeta")) {
+                            otraCarpeta.removeChild(otraCarpeta.querySelector(".btnEliminarCarpeta"));
+                        }
                     }
                 })
-
+            
+                if(htmlFolder.querySelector(".btnEliminarCarpeta")){
+                    htmlFolder.removeChild(htmlFolder.querySelector(".btnEliminarCarpeta"))
+                }
+            
+                // bloque si el botón está seleccionado
                 if(htmlFolder.classList.contains("selected")){
-                    const carpetas = obtenerDatoDelStorage('carpetas')
-                    //obtenemos la carpeta seleccionada
-                    const carpetaSeleccionada = carpetas.find(c => c.titulo == tituloCarpeta)
+                    // añadimos botón para eliminar carpeta y a este su icono
+                    const btnEliminarCarpeta = document.createElement("button")
+                    btnEliminarCarpeta.classList.add("btnEliminarCarpeta")
+                    
+                    const btnEliminarIcon = document.createElement("i")
+                    btnEliminarIcon.classList.add("fa-solid", "fa-circle-xmark", "btnEliminarCarpeta-icon");
+                    btnEliminarCarpeta.appendChild(btnEliminarIcon)
+                
+                    // si no contiene el botón de eliminar carpeta se lo agregamos
+                    if(!htmlFolder.querySelector(".btnEliminarCarpeta")){
+                        htmlFolder.appendChild(btnEliminarCarpeta)
+                    }
+                    
+                    // añadimos los eventos al botón de eliminar carpeta
+                    btnEliminarCarpeta.addEventListener("click",(e)=>{
+                        e.stopPropagation();
+                        
+                        const old = containerNav.querySelector(".btnAddNoteFolder")
+                        if (old) containerNav.replaceChild(btnAgregarNota, old)
+                        //limpiamos las notas
+                        while (containerNotas.firstChild) {
+                            containerNotas.removeChild(containerNotas.firstChild);
+                        }
+                        deleteFolder(htmlFolder)
+                        //y recargamos las notas originales
+                        cargarNotas()
+                        actualizarNotasUI();
+                    })
+                    
                     //limpiamos las notas
                     while (containerNotas.firstChild) {
                         containerNotas.removeChild(containerNotas.firstChild);
                     }
-
-                    carpetaSeleccionada.notas.slice().reverse().forEach(nota => {
-                        const htmlNote = crearElementoNota(nota);
-                        containerNotas.appendChild(htmlNote);
-                    });
-                    btnAddNote.addEventListener("click",()=>{
-                        alert("hola")
-                        formNuevaNotaCarpeta(carpetaSeleccionada)
-                    })
-
-                    mensajeNoTareas();
-
-                    btnAddNote.appendChild(btnAddNotaIcon)
-
-                    if(containerNav.firstChild === btnAgregarNota){
-                        containerNav.querySelector(".main__nav-button").replaceWith(btnAddNote)
-
+                    
+                    if (!btnAddNoteFolder.dataset.listenerAdded) {
+                        btnAddNoteFolder.addEventListener("click", ()=>{
+                            formNuevaNotaCarpeta(carpetaSeleccionada)
+                        })
+                        btnAddNoteFolder.dataset.listenerAdded = "true"
                     }
-                }else{
-                    const btnAddNote = document.querySelector(".btnAddNote")
-                    if(btnAddNote){
-                        containerNav.replaceChild(btnAgregarNota, btnAddNote )
+
+                    if(containerNav.querySelector(".btnAddNote")){
+                        const old = containerNav.querySelector(".btnAddNote")
+                        if (old){
+                            containerNav.replaceChild(btnAddNoteFolder, old)
+                        }
+                    }
+
+                }else{ // Bloque si el botón no está seleccionado
+                    const btnAddNoteFolder = document.querySelector(".btnAddNoteFolder")
+                    if(btnAddNoteFolder){
+                        const old = containerNav.querySelector(".btnAddNoteFolder")
+                        if (old) containerNav.replaceChild(btnAgregarNota, old)
+
                     }
                     
                     //limpiamos las notas
                     while (containerNotas.firstChild) {
                         containerNotas.removeChild(containerNotas.firstChild);
                     }
-
+                
                     //y recargamos las notas originales
                     cargarNotas()
+                    actualizarNotasUI();
                 }
             })
 
             containerCarpetas.prepend(htmlFolder);
+            actualizarNotasUI()
             main.removeChild(form)
 
         }else if (tipo.toLowerCase() == "notadecarpetas") {
 
             const newNotaCarpeta = {
-                id: generarId("notaCarpetas"),
+                id: generarId("nota"),
                 checked: false,
                 titulo: (inputTitulo?.value || "").trim(),
                 descripcion: (textArea?.value || "").trim(),
@@ -1352,7 +1410,6 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
             // Obtenemos array de carpetas desde storage (usa tu helper para parsear)
             let carpetas = obtenerDatoDelStorage('carpetas') || [];
             const carpeta = carpetas.find(c => c.id === carpetaSeleccionada.id || c.titulo === carpetaSeleccionada.titulo);
-            console.log("carpeta: ",carpeta)
 
             // Agregamos la nota y guardamos
            carpeta.notas.push(newNotaCarpeta);
@@ -1372,9 +1429,12 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                 const htmlNote = crearElementoNota(nota);
                 containerNotas.appendChild(htmlNote);
 
+                
                 mensajeNoTareas()
             });
+            actualizarNotasUI()
             main.removeChild(form)
+            formNotaCarpetaAbierto = false;
             // cerramos el formulario si estaba abierto
             if (main.querySelector(".form-nueva-nota")) {
                 main.removeChild(main.querySelector(".form-nueva-nota"));
@@ -1555,7 +1615,7 @@ function ordenarAlfabeticamente(arrayHtml){
         return textoA.localeCompare(textoB)
     })
 
-    if(arrayHtml.length > 1 && contador === 0){
+    if(arrayHtml.length > 1 && !estadoOrden.alfabetico){
         while (containerNotas.firstChild){
             containerNotas.removeChild(containerNotas.firstChild);
         }
@@ -1564,14 +1624,16 @@ function ordenarAlfabeticamente(arrayHtml){
             const nodo = elemento.closest(".main__note");
             containerNotas.appendChild(nodo)
         })
-        contador = 1
-    }else if(contador === 1){
+        actualizarNotasUI();
+        estadoOrden.alfabetico = true
+    }else if(estadoOrden.alfabetico){
         while (containerNotas.firstChild){
             containerNotas.removeChild(containerNotas.firstChild);
         }
 
         cargarNotas()
-        contador = 0
+        actualizarNotasUI();
+        estadoOrden.alfabetico = false
     }else{
         return
     }
@@ -1581,9 +1643,10 @@ btnOrderAlfabetic.addEventListener("click",()=>{ordenarAlfabeticamente(notasUI)}
 
 //Ordenar priority
 function ordenarPrioridad(arrayHtml){
-    const arrayElementos = Array.from(arrayHtml)
+    let arrayElementos = arrayHtml
     const prioridad = ["low","medium","high"]
     const elementosOrdenados = []
+    let notasStorage = obtenerDatoDelStorage("notas") || []
 
     if(btnOrderPriority.classList.contains("orderSelected")){
         btnOrderPriority.classList.remove("orderSelected")
@@ -1594,6 +1657,8 @@ function ordenarPrioridad(arrayHtml){
 
         arrayElementos.reverse()
         arrayElementos.forEach(nota => {containerNotas.appendChild(nota)})
+        actualizarNotasUI();
+        estadoOrden.prioridad = true
     }else if(!btnOrderPriority.classList.contains("orderSelected")){
         btnOrderPriority.classList.add("orderSelected")
         
@@ -1604,18 +1669,21 @@ function ordenarPrioridad(arrayHtml){
                 if(nota.prioridad === prioridadActual){
                     const id = parseInt(nota.id)
                     
-                    for(j = 0; j < arrayElementos.length; j++){
-                        if(parseInt(arrayElementos[i].id) === id){
-                            const padreDeElemento = arrayElementos[i].closest(".main__note")
+                    for(let j = 0; j < arrayElementos.length; j++){
+                        if(parseInt(arrayElementos[j].id) === id){
+                            const padreDeElemento = arrayElementos[j]
                             elementosOrdenados.push(padreDeElemento)
                         }
                     }
+                    
                 }
             });
-
         }
-
-        if(arrayHtml.length > 1 && contador === 0){
+        // Limpiar UI
+        containerNotas.innerHTML = "";
+        elementosOrdenados.forEach(nota => {containerNotas.appendChild(nota)})
+        actualizarNotasUI();
+        if(arrayHtml.length > 1 && !estadoOrden.prioridad){
             while (containerNotas.firstChild){
                 containerNotas.removeChild(containerNotas.firstChild);
             }
@@ -1626,13 +1694,16 @@ function ordenarPrioridad(arrayHtml){
                 const nodo = elemento.closest(".main__note");
                 containerNotas.appendChild(nodo)
             })
-        }else if(contador === 1){
+            actualizarNotasUI();
+            estadoOrden.prioridad = true
+        }else if(estadoOrden.prioridad){
             while (containerNotas.firstChild){
                 containerNotas.removeChild(containerNotas.firstChild);
             }
 
             cargarNotas()
-            contador = 0
+            actualizarNotasUI();
+            estadoOrden.prioridad = false
         }
         
     }
@@ -1642,7 +1713,7 @@ btnOrderPriority.addEventListener("click", ()=>{ordenarPrioridad(notasUI)})
 //Ordenar due date
 function ordenarFechaLimite(arrayHtml){
     const arrayElementos = Array.from(arrayHtml)
-    const elementosOrdenados = []
+    let elementosOrdenados = []
 
     const hoy = new Date()
 
@@ -1657,7 +1728,7 @@ function ordenarFechaLimite(arrayHtml){
         })
     })
 
-    if(arrayHtml.length > 1 && contador === 0){
+    if(arrayHtml.length > 1 && !estadoOrden.fecha){
         while (containerNotas.firstChild){
             containerNotas.removeChild(containerNotas.firstChild);
         }
@@ -1671,14 +1742,16 @@ function ordenarFechaLimite(arrayHtml){
         elementosOrdenados.forEach(nodo => {
             containerNotas.appendChild(nodo)
         })
-        contador = 1
-    }else if(contador === 1){
+        actualizarNotasUI();
+        estadoOrden.fecha = true
+    }else if(estadoOrden.fecha){
         while (containerNotas.firstChild){
             containerNotas.removeChild(containerNotas.firstChild);
         }
 
         cargarNotas()
-        contador = 0
+        actualizarNotasUI();
+        estadoOrden.fecha = false
     }else{
 
     }
