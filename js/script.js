@@ -780,6 +780,16 @@ function editNote(note) {
 
         // Actualizar nota global
         let nota = notas.find(n => n.id === noteStorageId);
+        let carpetaSeleccionada
+        let carpetaSeleccionadaId
+        let carpetaStorageSeleccionada
+
+        if(containerCarpetas.querySelector(".selected")){
+            const carpetaHtmlEncontrada = containerCarpetas.querySelector(".selected")
+            carpetaSeleccionada = carpetaHtmlEncontrada
+            carpetaSeleccionadaId = parseInt(carpetaSeleccionada.id)
+            carpetaStorageSeleccionada = carpetas.find(c => c.id == carpetaSeleccionadaId);
+        }
 
         if (nota) {
             nota.titulo = capitalizeFirstLetter(titleInput.value);
@@ -787,22 +797,21 @@ function editNote(note) {
             nota.fecha = dateInput.value;
             nota.prioridad = priorityInput.value;
             nota.checked = estadoFinalCheckbox;
-        }else{
+        }else if (carpetaSeleccionada){
+            
             // Actualizar nota en carpeta si existe
-            carpetas.forEach(carpeta => {
-                carpeta.notas.forEach(n => {
-                    if (n.id === noteStorageId) {
-                        n.titulo = capitalizeFirstLetter(titleInput.value);
-                        n.descripcion = descInput.value;
-                        n.fecha = dateInput.value;
-                        n.prioridad = priorityInput.value;
-                        n.checked = estadoFinalCheckbox;
-                    }
-                });
+            carpetaStorageSeleccionada.notas.forEach(n => {
+                if (n.id === noteStorageId) {
+                    n.titulo = capitalizeFirstLetter(titleInput.value);
+                    n.descripcion = descInput.value;
+                    n.fecha = dateInput.value;
+                    n.prioridad = priorityInput.value;
+                    n.checked = estadoFinalCheckbox;
+                }
             });
             actualizarNotasUI();
         }
-
+        
         // Guardar en storage
         localStorage.setItem("notas", JSON.stringify(notas));
         localStorage.setItem("carpetas", JSON.stringify(carpetas));
@@ -811,12 +820,17 @@ function editNote(note) {
         form.remove();
         formNotaCarpetaAbierto = false;
 
-        // Limpiamos UI
-        containerNotas.innerHTML = "";
-
         // Recargamos todas las notas desde storage
-        cargarNotas();
-        actualizarNotasUI();  // si la usás para bindear eventos
+        if(!carpetaSeleccionada){
+            containerNotas.innerHTML = ""
+            cargarNotas()
+        }else{
+            containerNotas.innerHTML = ""
+            carpetaStorageSeleccionada.notas.slice().reverse().forEach(nota => {
+                const htmlNote = crearElementoNota(nota);
+                containerNotas.appendChild(htmlNote);
+            });
+        }
 
         toastAlert("info", "Success: task edited successfully");
     });
