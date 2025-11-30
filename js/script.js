@@ -77,10 +77,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
         cargarCarpetas();
     }
 
-    //Variables del storage
-    const notasStorage = obtenerDatoDelStorage("notas")
-    const carpetasStorage = obtenerDatoDelStorage("carpetas")
-
     const elementosCarpetas = containerCarpetas.querySelectorAll(".folder")
 
     //creamos el boton para añadir notas a las carpetas
@@ -161,6 +157,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
                         });
                         actualizarNotasUI();
+                        mensajeNoTareas()
                     }else mensajeNoTareas();
                     
                     if (!btnAddNoteFolder.dataset.listenerAdded) {
@@ -822,10 +819,14 @@ function editNote(note) {
 
         // Recargamos todas las notas desde storage
         if(!carpetaSeleccionada){
-            containerNotas.innerHTML = ""
+            while (containerNotas.firstChild) {
+                containerNotas.removeChild(containerNotas.firstChild);
+            }
             cargarNotas()
         }else{
-            containerNotas.innerHTML = ""
+            while (containerNotas.firstChild) {
+                containerNotas.removeChild(containerNotas.firstChild);
+            }
             carpetaStorageSeleccionada.notas.slice().reverse().forEach(nota => {
                 const htmlNote = crearElementoNota(nota);
                 containerNotas.appendChild(htmlNote);
@@ -842,25 +843,24 @@ function deleteNote(note){
 
     if (!des) return;
 
-    let notasArr = obtenerDatoDelStorage("notas") || [];
+    let notas = obtenerDatoDelStorage("notas") || [];
     const id = parseInt(note.id);
 
     if(des){
+        // Eliminamos la nota del contenedor visual
         for(let i = 0; i < containerNotas.children.length; i++){
             const note = containerNotas.children[i];
             let noteId = parseInt(note.id);
 
             if(noteId === id){
                 containerNotas.removeChild(containerNotas.children[i])
-                elementNoteHtml.remove();
-                actualizarNotasUI()
             }
         }
-
+        actualizarNotasUI()
         mensajeNoTareas();
 
-        notasArr = notasArr.filter(nota => parseInt(nota.id) !== id);
-        localStorage.setItem("notas", JSON.stringify(notasArr));
+        notas = notas.filter(nota => nota.id !== note.id);
+        localStorage.setItem("notas", JSON.stringify(notas));
         
         toastAlert("success", "Success: task successfully deleted")
     }else{
@@ -1455,7 +1455,9 @@ const manejarSubmitFormulario = (formulario, tipo, carpetaSeleccionada="null") =
                 return;
             }
 
-            containerNotas.innerHTML = ""
+            while (containerNotas.firstChild) {
+                containerNotas.removeChild(containerNotas.firstChild);
+            }
 
             // Añadimos las notas guardadas de la carpeta a la UI
             carpeta.notas.slice().reverse().forEach(nota => {
@@ -1712,7 +1714,9 @@ function ordenarPrioridad(arrayHtml){
             });
         }
         // Limpiar UI
-        containerNotas.innerHTML = "";
+        while (containerNotas.firstChild) {
+            containerNotas.removeChild(containerNotas.firstChild);
+        }
         elementosOrdenados.forEach(nota => {containerNotas.appendChild(nota)})
         actualizarNotasUI();
         if(arrayHtml.length > 1 && !estadoOrden.prioridad){
