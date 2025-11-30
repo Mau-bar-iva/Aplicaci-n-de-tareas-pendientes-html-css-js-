@@ -806,9 +806,9 @@ function editNote(note) {
                     n.checked = estadoFinalCheckbox;
                 }
             });
-            actualizarNotasUI();
+            
         }
-        
+        actualizarNotasUI();
         // Guardar en storage
         localStorage.setItem("notas", JSON.stringify(notas));
         localStorage.setItem("carpetas", JSON.stringify(carpetas));
